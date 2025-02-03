@@ -4,6 +4,7 @@
  */
 #include <bingo/pubsub.h>
 #include <assert.h>
+#include <stdio.h>
 
 typedef union {
     struct {
@@ -15,6 +16,10 @@ typedef union {
 } timpl_t;
 
 #define MAX_SUBSCRIPTIONS 1024
+
+#define MODE_UNDEF   0
+#define MODE_EXCL    1
+#define MODE_NONEXCL 2
 
 typedef struct {
     topic_t topic;
@@ -63,16 +68,36 @@ ps_publish(token_t token, event_t event)
     timpl.as_token = token;
 
     for (int idx = 0, sidx = 0; idx < _next_subscription; idx++) {
+        // if we find a subscription for the topic, we also check if the
+        // subscription index (sidx) matches the token index. The token index
+        // indicates where in the subscriber chain, the publication should
+        // start.
         subscription_t subs = _subscriptions[idx];
         if (subs.topic != timpl.details.topic)
             continue;
         if (sidx++ < timpl.details.index)
             continue;
 
+        // we pass the up-to-date token in the callback in case the subscriber
+        // wants to republish to the remainder of this chain.
         timpl.details.index++;
 
         assert(subs.cb);
-        if (!subs.cb(timpl.as_token, event))
+
+        // to enforce exclusive rights to publish in a topic, we mark the
+        // subscriptions with exclusive or non-exclusive modes.
+        int token_mode = timpl.details.exclusive ? MODE_EXCL : MODE_NONEXCL;
+        if (subs.mode == MODE_UNDEF) {
+            subs.mode = token_mode;
+        } else if (subs.mode != token_mode) {
+            perror("wrong token mode");
+            return 1;
+        }
+
+        // now we call the callback and abort the chain if the subscriber
+        // "censors" the event by returning false.
+        bool cont = subs.cb(timpl.as_token, event);
+        if (!cont)
             break;
     }
     return 0;

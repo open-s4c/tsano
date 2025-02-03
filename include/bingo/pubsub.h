@@ -65,6 +65,10 @@ int ps_subscribe(topic_t topic, ps_callback_f cb);
         ps_subscribe(topic, _ps_callback_##topic);                             \
     }
 
-#define PS_PUBLISH(topic, event) ps_publish(ps_advertise(topic, false), event)
+#define PS_PUBLISH(topic, event)                                               \
+    do {                                                                       \
+        int err = ps_publish(ps_advertise(topic, false), event);               \
+        assert(err == 0);                                                      \
+    } while (0);
 
 #endif
