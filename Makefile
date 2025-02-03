@@ -1,5 +1,5 @@
 CFLAGS=	-Iinclude -Ivendor/include
-SRCS= 	src/pubsub.c
+SRCS= 	src/pubsub.c src/mempool.c
 
 libbingo.so: $(SRCS)
 	$(CC) -shared -fPIC $(CFLAGS) -o $@ $(SRCS)
