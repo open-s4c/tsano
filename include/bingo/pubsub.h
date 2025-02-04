@@ -5,8 +5,10 @@
 #ifndef BINGO_PUBSUB_H
 #define BINGO_PUBSUB_H
 
-#include <stdint.h>
+#include <assert.h>
 #include <stdbool.h>
+#include <stdint.h>
+
 #include <bingo/macros.h>
 
 /*
@@ -55,7 +57,7 @@ int ps_subscribe(topic_t topic, ps_callback_f cb);
 #define PS_SUBSCRIBE(topic, CALLBACK)                                          \
     static bool _ps_callback_##topic(token_t token, event_t event)             \
     {                                                                          \
-        (CALLBACK);                                                            \
+        CALLBACK;                                                              \
         return true;                                                           \
     }                                                                          \
     static void BINGO_CTOR _ps_subscribe_##topic(void)                         \
@@ -66,6 +68,12 @@ int ps_subscribe(topic_t topic, ps_callback_f cb);
 #define PS_PUBLISH(topic, event)                                               \
     do {                                                                       \
         int err = ps_publish(ps_advertise(topic, false), event);               \
+        assert(err == 0);                                                      \
+    } while (0);
+
+#define PS_REPUBLISH(event)                                                    \
+    do {                                                                       \
+        int err = ps_publish((token), (event));                                \
         assert(err == 0);                                                      \
     } while (0);
 

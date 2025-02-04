@@ -16,4 +16,6 @@
         write(STDOUT_FILENO, msg, n);                                          \
     } while (0)
 
+#define log_debugf log_printf
+
 #endif /* BINGO_LOG_H */
