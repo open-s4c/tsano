@@ -1,0 +1,7 @@
+file(GLOB SRCS *.c)
+foreach(SRC ${SRCS})
+	get_filename_component(TEST ${SRC} NAME_WLE)
+	set(TARGET ${TEST})
+	add_executable(${TARGET} ${SRC})
+	target_link_libraries(${TARGET} PRIVATE pthread)
+endforeach()

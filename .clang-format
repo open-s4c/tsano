@@ -25,7 +25,15 @@ ContinuationIndentWidth                   : 4
 DeriveLineEnding                          : false
 DerivePointerAlignment                    : false
 ExperimentalAutoDetectBinPacking          : false
-IncludeBlocks                             : Merge
+IncludeBlocks                             : Regroup
+IncludeCategories:
+  - Regex:           '^<[[:alnum:]._-]+>'
+    Priority: -2
+  - Regex:           '^<bingo/)'
+    Priority:        -1
+  - Regex:           '.*'
+    Priority:        0
+
 IndentCaseLabels                          : true
 IndentGotoLabels                          : false
 IndentPPDirectives                        : BeforeHash
@@ -36,7 +44,7 @@ Language                                  : Cpp
 MaxEmptyLinesToKeep                       : 2
 PointerAlignment                          : Right
 ReflowComments                            : true
-SortIncludes                              : false
+SortIncludes                              : true
 SpaceAfterCStyleCast                      : false
 SpaceAfterLogicalNot                      : false
 SpaceBeforeAssignmentOperators            : true
