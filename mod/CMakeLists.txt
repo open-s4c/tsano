@@ -1,0 +1,8 @@
+file(GLOB SRCS *.c)
+foreach(SRC ${SRCS})
+	get_filename_component(MODULE ${SRC} NAME_WLE)
+	set(TARGET ${MODULE})
+	add_library(${TARGET} SHARED ${SRC})
+	target_link_libraries(${TARGET} PRIVATE bingo)
+	set_target_properties(${TARGET} PROPERTIES PREFIX "")
+endforeach()

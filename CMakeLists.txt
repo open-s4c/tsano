@@ -17,5 +17,7 @@ add_compile_options(
     -Wno-override-init)
 
 include_directories(include)
+include_directories(vendor/include)
 add_subdirectory(src)
+add_subdirectory(mod)
 add_subdirectory(test)
