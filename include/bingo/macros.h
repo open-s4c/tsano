@@ -5,21 +5,23 @@
 #ifndef BINGO_MACROS_H
 #define BINGO_MACROS_H
 
+#include <bingo/log.h>
+
 #define BINGO_CTOR __attribute__((constructor))
 #define BINGO_DTOR __attribute__((destructor))
 #define BINGO_WEAK __attribute__((weak))
 
-#define BINGO_PLUGIN_INIT(CODE)                                                \
-    static BINGO_CTOR void _plugin_init()                                      \
+#define BINGO_MODULE_INIT(CODE)                                                \
+    static BINGO_CTOR void _module_init()                                      \
     {                                                                          \
         if (1) {                                                               \
             CODE                                                               \
         }                                                                      \
-        printf("LOADED %s\n", __FILE__);                                       \
+        log_printf("LOADED %s\n", __FILE__);                                   \
     }
 
-#define BINGO_PLUGIN_FINI(CODE)                                                \
-    static BINGO_CTOR void _plugin_finif()                                     \
+#define BINGO_MODULE_FINI(CODE)                                                \
+    static BINGO_DTOR void _module_fini()                                      \
     {                                                                          \
         if (1) {                                                               \
             CODE                                                               \

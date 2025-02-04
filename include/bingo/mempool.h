@@ -7,8 +7,7 @@
 
 #include <stddef.h>
 
-void *mempool_malloc(size_t size);
-void *mempool_calloc(size_t number, size_t size);
+void *mempool_alloc(size_t size);
 void *mempool_realloc(void *ptr, size_t size);
 void mempool_free(void *ptr);
 

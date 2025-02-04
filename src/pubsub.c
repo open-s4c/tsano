@@ -2,9 +2,10 @@
  * Copyright (C) Huawei Technologies Co., Ltd. 2025. All rights reserved.
  * SPDX-License-Identifier: MIT
  */
-#include <bingo/pubsub.h>
 #include <assert.h>
 #include <stdio.h>
+
+#include <bingo/pubsub.h>
 
 typedef union {
     struct {
@@ -101,3 +102,5 @@ ps_publish(token_t token, event_t event)
     }
     return 0;
 }
+
+BINGO_MODULE_INIT()
