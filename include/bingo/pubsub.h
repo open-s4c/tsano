@@ -7,6 +7,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <bingo/macros.h>
 
 /*
  *  event
@@ -30,8 +31,7 @@ typedef struct event {
  *  topics and tokens
  */
 
-#define TOPIC_NONE 0
-#define TOPIC_ALL  -1
+#define TOPIC_ANY ((topic_t) - 1)
 
 typedef uint16_t topic_t;
 typedef struct token {
@@ -52,15 +52,13 @@ token_t ps_advertise(topic_t topic, bool exclusive);
 int ps_publish(token_t token, event_t event);
 int ps_subscribe(topic_t topic, ps_callback_f cb);
 
-#define BINGO_CONSTRUCTOR __attribute__((constructor))
-
 #define PS_SUBSCRIBE(topic, CALLBACK)                                          \
     static bool _ps_callback_##topic(token_t token, event_t event)             \
     {                                                                          \
         (CALLBACK);                                                            \
         return true;                                                           \
     }                                                                          \
-    static void BINGO_CONSTRUCTOR _ps_subscribe_##topic(void)                  \
+    static void BINGO_CTOR _ps_subscribe_##topic(void)                         \
     {                                                                          \
         ps_subscribe(topic, _ps_callback_##topic);                             \
     }
@@ -71,4 +69,4 @@ int ps_subscribe(topic_t topic, ps_callback_f cb);
         assert(err == 0);                                                      \
     } while (0);
 
-#endif
+#endif /* BINGO_PUBSUB_H */
