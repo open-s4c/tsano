@@ -7,9 +7,10 @@
 
 #include <bingo/log.h>
 
-#define BINGO_CTOR __attribute__((constructor))
-#define BINGO_DTOR __attribute__((destructor))
-#define BINGO_WEAK __attribute__((weak))
+#define BINGO_CTOR  __attribute__((constructor))
+#define BINGO_DTOR  __attribute__((destructor))
+#define BINGO_WEAK  __attribute__((weak))
+#define BINGO_NORET _Noreturn
 
 #define BINGO_MODULE_INIT(CODE)                                                \
     static BINGO_CTOR void _module_init()                                      \

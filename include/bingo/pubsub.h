@@ -28,12 +28,13 @@ typedef struct event {
     void *mbox;      // abtract return arguments
 } event_t;
 
+#define new_event(k) ((event_t){.kind = (k)})
 
 /*
  *  topics and tokens
  */
 
-#define TOPIC_ANY ((topic_t) - 1)
+#define ANY_TOPIC ((topic_t) - 1)
 
 typedef uint16_t topic_t;
 typedef struct token {

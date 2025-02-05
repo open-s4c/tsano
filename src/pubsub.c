@@ -74,7 +74,7 @@ ps_publish(token_t token, event_t event)
         // indicates where in the subscriber chain, the publication should
         // start.
         subscription_t subs = _subscriptions[idx];
-        if (subs.topic != timpl.details.topic && subs.topic != TOPIC_ANY)
+        if (subs.topic != timpl.details.topic && subs.topic != ANY_TOPIC)
             continue;
         if (sidx++ < timpl.details.index)
             continue;

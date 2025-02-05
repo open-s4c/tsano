@@ -8,11 +8,11 @@
 #include <bingo/pubsub.h>
 
 enum default_topics {
-    TOPIC_CAPTURE_BEFORE,
-    TOPIC_CAPTURE_AFTER,
-    TOPIC_CAPTURE_AT,
+    INTERCEPT_BEFORE,
+    INTERCEPT_AFTER,
+    CAPTURE,
 
-    _TOPIC_ANY = TOPIC_ANY,
+    _TOPIC_ANY = ANY_TOPIC,
 };
 
 #endif /* BINGO_TOPICS_H */

@@ -17,5 +17,10 @@
     } while (0)
 
 #define log_debugf log_printf
+#define log_fatalf(fmt, ...)                                                   \
+    {                                                                          \
+        log_printf(fmt, ##__VA_ARGS__);                                        \
+        abort();                                                               \
+    }
 
 #endif /* BINGO_LOG_H */
