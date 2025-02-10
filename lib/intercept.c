@@ -18,26 +18,26 @@ BINGO_MODULE_INIT({
 })
 
 static void
-_intercept(chain_id t, kind_t k, const void *c, void *m)
+_intercept(chain_id chain, kind_t kind, const void *arg, void *ret)
 {
-    int r = ps_publish(_token[t], k, c, m);
-    assert(r == 0);
+    int rv = ps_publish(_token[chain], kind, arg, ret);
+    assert(rv == 0);
 }
 
 void
-intercept_before(kind_t kind, const void *content, void *mbox)
+intercept_before(kind_t kind, const void *arg, void *ret)
 {
-    _intercept(INTERCEPT_BEFORE, kind, content, mbox);
+    _intercept(INTERCEPT_BEFORE, kind, arg, ret);
 }
 
 void
-intercept_after(kind_t kind, const void *content, void *mbox)
+intercept_after(kind_t kind, const void *arg, void *ret)
 {
-    _intercept(INTERCEPT_AFTER, kind, content, mbox);
+    _intercept(INTERCEPT_AFTER, kind, arg, ret);
 }
 
 void
-intercept_at(kind_t kind, const void *content, void *mbox)
+intercept_at(kind_t kind, const void *arg, void *ret)
 {
-    _intercept(INTERCEPT_AT, kind, content, mbox);
+    _intercept(INTERCEPT_AT, kind, arg, ret);
 }

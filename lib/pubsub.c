@@ -32,7 +32,7 @@ static unsigned int _next_subscription;
 static subscription_t _subscriptions[MAX_SUBSCRIPTIONS + 1];
 
 chain_id
-as_chain(token_t token)
+chain_from(token_t token)
 {
     timpl_t timpl;
     timpl.as_token = token;

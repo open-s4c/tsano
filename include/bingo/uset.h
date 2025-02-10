@@ -42,5 +42,6 @@ void uset_filter(uset_t *uset, bool (*predicate)(uint64_t));
 bool uset_contains_all(const uset_t *uset1, const uset_t *uset2);
 
 void uset_make_first(uset_t *uset, uint64_t id);
+void uset_print(const uset_t *uset);
 
 #endif /* BINGO_USET_H */
