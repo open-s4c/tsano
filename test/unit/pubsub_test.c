@@ -6,12 +6,12 @@
 #include <stdio.h>
 #include <bingo/pubsub.h>
 
-#define TOPIC         1
-#define ANOTHER_TOPIC 101
+#define CHAIN         1
+#define ANOTHER_CHAIN 101
 
 int count = 0;
-PS_SUBSCRIBE(TOPIC, {
-    printf("event from TOPIC\n");
+PS_SUBSCRIBE(CHAIN, {
+    printf("event from CHAIN\n");
     count++;
 })
 
@@ -19,8 +19,8 @@ int
 main()
 {
     event_t e;
-    PS_PUBLISH(TOPIC, e);
-    PS_PUBLISH(ANOTHER_TOPIC, e);
+    PS_PUBLISH(CHAIN, e);
+    PS_PUBLISH(ANOTHER_CHAIN, e);
     assert(count == 1);
     return 0;
 }

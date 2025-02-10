@@ -10,7 +10,7 @@
 typedef union {
     struct {
         uint32_t index;
-        topic_t topic;
+        chain_id chain;
         bool exclusive;
     } details;
     token_t as_token;
@@ -23,7 +23,7 @@ typedef union {
 #define MODE_NONEXCL 2
 
 typedef struct {
-    topic_t topic;
+    chain_id chain;
     ps_callback_f cb;
     int mode;
 } subscription_t;
@@ -31,22 +31,22 @@ typedef struct {
 static unsigned int _next_subscription;
 static subscription_t _subscriptions[MAX_SUBSCRIPTIONS + 1];
 
-topic_t
-as_topic(token_t token)
+chain_id
+as_chain(token_t token)
 {
     timpl_t timpl;
     timpl.as_token = token;
-    return timpl.details.topic;
+    return timpl.details.chain;
 }
 
 token_t
-ps_advertise(topic_t topic, bool exclusive)
+ps_advertise(chain_id chain, bool exclusive)
 {
     timpl_t timpl = {
         .details =
             {
                 .index     = 0,
-                .topic     = topic,
+                .chain     = chain,
                 .exclusive = exclusive,
             },
     };
@@ -54,27 +54,27 @@ ps_advertise(topic_t topic, bool exclusive)
 }
 
 int
-ps_subscribe(topic_t topic, ps_callback_f cb)
+ps_subscribe(chain_id chain, ps_callback_f cb)
 {
     assert(_next_subscription < MAX_SUBSCRIPTIONS);
     int idx             = _next_subscription++;
-    _subscriptions[idx] = (subscription_t){.topic = topic, .cb = cb};
+    _subscriptions[idx] = (subscription_t){.chain = chain, .cb = cb};
     return 0;
 }
 
 int
-ps_publish(token_t token, event_t event)
+ps_publish(token_t token, kind_t kind, const void *arg, void *ret)
 {
     timpl_t timpl;
     timpl.as_token = token;
 
     for (unsigned int idx = 0, sidx = 0; idx < _next_subscription; idx++) {
-        // if we find a subscription for the topic, we also check if the
+        // if we find a subscription for the chain, we also check if the
         // subscription index (sidx) matches the token index. The token index
         // indicates where in the subscriber chain, the publication should
         // start.
         subscription_t subs = _subscriptions[idx];
-        if (subs.topic != timpl.details.topic && subs.topic != ANY_TOPIC)
+        if (subs.chain != timpl.details.chain && subs.chain != ANY_CHAIN)
             continue;
         if (sidx++ < timpl.details.index)
             continue;
@@ -85,7 +85,7 @@ ps_publish(token_t token, event_t event)
 
         assert(subs.cb);
 
-        // to enforce exclusive rights to publish in a topic, we mark the
+        // to enforce exclusive rights to publish in a chain, we mark the
         // subscriptions with exclusive or non-exclusive modes.
         int token_mode = timpl.details.exclusive ? MODE_EXCL : MODE_NONEXCL;
         if (subs.mode == MODE_UNDEF) {
@@ -97,7 +97,7 @@ ps_publish(token_t token, event_t event)
 
         // now we call the callback and abort the chain if the subscriber
         // "censors" the event by returning false.
-        if (!subs.cb(timpl.as_token, event))
+        if (!subs.cb(timpl.as_token, kind, arg, ret))
             return 0;
     }
     return 0;
