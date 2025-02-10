@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 project(bingo
-        LANGUAGES C
+        LANGUAGES C ASM
         VERSION 0.1)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -18,6 +18,6 @@ add_compile_options(
 
 include_directories(include)
 include_directories(vendor/include)
-add_subdirectory(src)
+add_subdirectory(lib)
 add_subdirectory(mod)
 add_subdirectory(test)
