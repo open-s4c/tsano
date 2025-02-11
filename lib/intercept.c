@@ -12,32 +12,34 @@ static token_t _token[] = {
 };
 
 BINGO_MODULE_INIT({
+    /* Advertise chains with exlusive tokens. That ensures only the functions in
+     * this file can publish to these chain. */
     _token[INTERCEPT_BEFORE] = ps_advertise(INTERCEPT_BEFORE, true);
     _token[INTERCEPT_AFTER]  = ps_advertise(INTERCEPT_AFTER, true);
     _token[INTERCEPT_AT]     = ps_advertise(INTERCEPT_AT, true);
 })
 
 static void
-_intercept(chain_id chain, kind_t kind, const void *arg, void *ret)
+_intercept(chain_id chain, event_t event, const void *arg, void *ret)
 {
-    int rv = ps_publish(_token[chain], kind, arg, ret);
+    int rv = ps_publish(_token[chain], event, arg, ret);
     assert(rv == 0);
 }
 
 void
-intercept_before(kind_t kind, const void *arg, void *ret)
+intercept_before(event_t event, const void *arg, void *ret)
 {
-    _intercept(INTERCEPT_BEFORE, kind, arg, ret);
+    _intercept(INTERCEPT_BEFORE, event, arg, ret);
 }
 
 void
-intercept_after(kind_t kind, const void *arg, void *ret)
+intercept_after(event_t event, const void *arg, void *ret)
 {
-    _intercept(INTERCEPT_AFTER, kind, arg, ret);
+    _intercept(INTERCEPT_AFTER, event, arg, ret);
 }
 
 void
-intercept_at(kind_t kind, const void *arg, void *ret)
+intercept_at(event_t event, const void *arg, void *ret)
 {
-    _intercept(INTERCEPT_AT, kind, arg, ret);
+    _intercept(INTERCEPT_AT, event, arg, ret);
 }

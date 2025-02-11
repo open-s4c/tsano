@@ -63,7 +63,7 @@ ps_subscribe(chain_id chain, ps_callback_f cb)
 }
 
 int
-ps_publish(token_t token, kind_t kind, const void *arg, void *ret)
+ps_publish(token_t token, event_t event, const void *arg, void *ret)
 {
     timpl_t timpl;
     timpl.as_token = token;
@@ -97,7 +97,7 @@ ps_publish(token_t token, kind_t kind, const void *arg, void *ret)
 
         // now we call the callback and abort the chain if the subscriber
         // "censors" the event by returning false.
-        if (!subs.cb(timpl.as_token, kind, arg, ret))
+        if (!subs.cb(timpl.as_token, event, arg, ret))
             return 0;
     }
     return 0;
