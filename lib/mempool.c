@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <bingo/macros.h>
+#include <bingo/module.h>
 #include <bingo/mempool.h>
 #include <vsync/spinlock/caslock.h>
 #define ASSERT assert

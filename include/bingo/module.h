@@ -2,8 +2,8 @@
  * Copyright (C) Huawei Technologies Co., Ltd. 2025. All rights reserved.
  * SPDX-License-Identifier: MIT
  */
-#ifndef BINGO_MACROS_H
-#define BINGO_MACROS_H
+#ifndef BINGO_MODULE_H
+#define BINGO_MODULE_H
 
 #include <bingo/log.h>
 
@@ -28,4 +28,4 @@
             CODE                                                               \
         }                                                                      \
     }
-#endif /* BINGO_MACROS_H */
+#endif /* BINGO_MODULE_H */

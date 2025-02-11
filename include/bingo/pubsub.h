@@ -31,7 +31,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <bingo/macros.h>
+#include <bingo/module.h>
 
 /* event_t represents the event type send to a chain. */
 typedef uint32_t event_t;

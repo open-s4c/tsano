@@ -11,7 +11,7 @@
 #include <stddef.h>
 #include <stdio.h>
 
-#include <bingo/macros.h>
+#include <bingo/module.h>
 
 BINGO_WEAK void *real_func_impl(const char *fname, const char *lib);
 static inline void *
