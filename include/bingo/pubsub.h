@@ -73,6 +73,10 @@ typedef bool (*ps_callback_f)(token_t token, event_t event, const void *arg,
  * an error. */
 token_t ps_advertise(chain_id chain, bool exclusive);
 
+#define PS_SUCCESS   0
+#define PS_NOT_READY 1
+#define PS_INVALID   2
+
 /* ps_publish publishes (ie, dispatches) an event to a chain.
  *
  * The chain is identified by the token retrieved with `ps_advertise`. The type
@@ -112,14 +116,15 @@ int ps_subscribe(chain_id chain, ps_callback_f cb);
     }                                                                          \
     static void BINGO_CTOR _ps_subscribe_##chain(void)                         \
     {                                                                          \
-        ps_subscribe(chain, _ps_callback_##chain);                             \
+        int err = ps_subscribe(chain, _ps_callback_##chain);                   \
+        assert(err == PS_SUCCESS);                                             \
     }
 
 /* PS_PUBLISH macro publishes to `chain` with a non-exclusive token. */
 #define PS_PUBLISH(chain, event, arg, ret)                                     \
     do {                                                                       \
         int err = ps_publish(ps_advertise(chain, false), event, arg, ret);     \
-        assert(err == 0);                                                      \
+        assert(err == PS_SUCCESS);                                             \
     } while (0);
 
 /* PS_REPUBLISH macro republishes to the suffix of a chain.
@@ -133,7 +138,7 @@ int ps_subscribe(chain_id chain, ps_callback_f cb);
 #define PS_REPUBLISH(event, arg, ret)                                          \
     do {                                                                       \
         int err = ps_publish((token), event, arg, ret);                        \
-        assert(err == 0);                                                      \
+        assert(err == PS_SUCCESS);                                             \
     } while (0);
 
 #endif /* BINGO_PUBSUB_H */

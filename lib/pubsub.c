@@ -28,6 +28,7 @@ typedef struct {
     int mode;
 } subscription_t;
 
+static bool _initd;
 static unsigned int _next_subscription;
 static subscription_t _subscriptions[MAX_SUBSCRIPTIONS + 1];
 
@@ -59,7 +60,7 @@ ps_subscribe(chain_id chain, ps_callback_f cb)
     assert(_next_subscription < MAX_SUBSCRIPTIONS);
     int idx             = _next_subscription++;
     _subscriptions[idx] = (subscription_t){.chain = chain, .cb = cb};
-    return 0;
+    return PS_SUCCESS;
 }
 
 int
@@ -67,6 +68,9 @@ ps_publish(token_t token, event_t event, const void *arg, void *ret)
 {
     timpl_t timpl;
     timpl.as_token = token;
+
+    if (!_initd)
+        return PS_NOT_READY;
 
     for (unsigned int idx = 0, sidx = 0; idx < _next_subscription; idx++) {
         // if we find a subscription for the chain, we also check if the
@@ -92,15 +96,15 @@ ps_publish(token_t token, event_t event, const void *arg, void *ret)
             subs.mode = token_mode;
         } else if (subs.mode != token_mode) {
             perror("wrong token mode");
-            return 1;
+            return PS_INVALID;
         }
 
         // now we call the callback and abort the chain if the subscriber
         // "censors" the event by returning false.
         if (!subs.cb(timpl.as_token, event, arg, ret))
-            return 0;
+            return PS_SUCCESS;
     }
-    return 0;
+    return PS_SUCCESS;
 }
 
-BINGO_MODULE_INIT()
+BINGO_MODULE_INIT({ _initd = true; })

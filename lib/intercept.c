@@ -2,6 +2,9 @@
  * Copyright (C) Huawei Technologies Co., Ltd. 2025. All rights reserved.
  * SPDX-License-Identifier: MIT
  */
+#include <stdio.h>
+#include <stdlib.h>
+
 #include <bingo/intercept.h>
 #include <bingo/pubsub.h>
 
@@ -22,8 +25,12 @@ BINGO_MODULE_INIT({
 static void
 _intercept(chain_id chain, event_t event, const void *arg, void *ret)
 {
-    int rv = ps_publish(_token[chain], event, arg, ret);
-    assert(rv == 0);
+    int err = ps_publish(_token[chain], event, arg, ret);
+
+    if (err != PS_SUCCESS && err != PS_NOT_READY) {
+        perror("intercept publish");
+        exit(EXIT_FAILURE);
+    }
 }
 
 void
