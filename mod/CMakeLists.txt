@@ -6,3 +6,5 @@ foreach(SRC ${SRCS})
 	target_link_libraries(${TARGET} PRIVATE bingo)
 	set_target_properties(${TARGET} PROPERTIES PREFIX "")
 endforeach()
+
+target_sources(autocept PRIVATE autocept_list.S)
