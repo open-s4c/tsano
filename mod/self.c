@@ -1,0 +1,118 @@
+/*
+ * Copyright (C) Huawei Technologies Co., Ltd. 2025. All rights reserved.
+ * SPDX-License-Identifier: MIT
+ */
+#include <assert.h>
+#include <pthread.h>
+#include <stdio.h>
+
+#include "defs.h"
+#include "self.h"
+#include <bingo/intercept.h>
+#include <bingo/log.h>
+#include <bingo/mempool.h>
+#include <bingo/pubsub.h>
+#include <bingo/uset.h>
+#include <vsync/atomic.h>
+
+typedef struct task_data {
+    int guard;
+    task_id tid;
+} tdata_t;
+
+static vatomic64_t _task_count = VATOMIC_INIT(0);
+static pthread_key_t _key;
+
+void
+_self_destruct(void *arg)
+{
+    /* In some systems (eg, NetBSD) threads still call interceptors while
+     * terminating (inside pthread_exit). Setting _key to NULL instructs the
+     * pubsub to ignore further events. No further TLS data will be (re)created
+     * because no EVENT_TASK_INIT will be published for this task  anymore. */
+    if (arg == NULL)
+        return;
+
+    mempool_free(arg);
+    int err = pthread_setspecific(_key, 0);
+    assert(err == 0);
+}
+
+static tdata_t *
+_self_construct(event_t event)
+{
+    tdata_t *td = pthread_getspecific(_key);
+    if (td != NULL || event != EVENT_TASK_INIT)
+        return td;
+
+    /* We only initialize the TLS if the event is a TASK_INIT event. */
+    td        = mempool_alloc(sizeof(tdata_t));
+    td->guard = 0;
+    td->tid   = vatomic64_inc_get(&_task_count);
+
+    int err = pthread_setspecific(_key, td);
+    assert(err == 0);
+
+    return td;
+}
+
+static void
+_self_handle(token_t token, event_t event, const void *arg, void *ret)
+{
+    /* The goal here is to wrap the existing event with a seq_value_t that
+     * contains also the task id calculated here when allocating the _key in the
+     * TLS. */
+    tdata_t *td = _self_construct(event);
+    if (td == NULL)
+        return;
+
+    chain_id chain = chain_from(token);
+
+    /* Short circuit and set tombstone if task terminating */
+    if (event == EVENT_TASK_FINI) {
+        assert(chain == INTERCEPT_AT);
+
+        task_id tid = td->tid;
+        _self_destruct(td);
+        td = NULL;
+
+        /* We republish the event to ensure all subscribers know about the task
+         * termination */
+        self_event_t val = {
+            .tid = tid,
+            .arg = arg,
+        };
+        PS_REPUBLISH(event, &val, ret);
+        return;
+    }
+
+    if ((chain == INTERCEPT_BEFORE && td->guard++ == 0) ||
+        (chain == INTERCEPT_AFTER && td->guard-- == 1) ||
+        (chain == INTERCEPT_AT && td->guard == 0)) {
+        td->guard++;
+
+        self_event_t val = {
+            .tid = td->tid,
+            .arg = arg,
+        };
+        PS_REPUBLISH(event, &val, ret);
+
+        td->guard--;
+    }
+}
+
+PS_SUBSCRIBE(ANY_CHAIN, {
+    _self_handle(token, event, arg, ret);
+    return false;
+})
+
+BINGO_MODULE_INIT({
+    int err = pthread_key_create(&_key, _self_destruct);
+    assert(err == 0);
+
+    /* Construct TLS for main thread, but do not publish any event. Downstream
+     * handlers should learn the existence of the main thread on demand. */
+    _self_construct(EVENT_TASK_INIT);
+})
+
+BINGO_MODULE_FINI({ intercept_at(EVENT_TASK_FINI, 0, 0); })
