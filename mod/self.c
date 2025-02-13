@@ -2,17 +2,19 @@
  * Copyright (C) Huawei Technologies Co., Ltd. 2025. All rights reserved.
  * SPDX-License-Identifier: MIT
  */
+/*******************************************************************************
+ * @file self.c
+ * @brief Thread "self-awareness"
+ ******************************************************************************/
 #include <assert.h>
 #include <pthread.h>
 #include <stdio.h>
 
-#include "defs.h"
-#include "self.h"
 #include <bingo/intercept.h>
 #include <bingo/log.h>
 #include <bingo/mempool.h>
 #include <bingo/pubsub.h>
-#include <bingo/uset.h>
+#include <bingo/self.h>
 #include <vsync/atomic.h>
 
 typedef struct task_data {
@@ -23,7 +25,14 @@ typedef struct task_data {
 static vatomic64_t _task_count = VATOMIC_INIT(0);
 static pthread_key_t _key;
 
-void
+task_id
+self_id()
+{
+    tdata_t *td = pthread_getspecific(_key);
+    return td ? td->tid : NO_TASK;
+}
+
+static void
 _self_destruct(void *arg)
 {
     /* In some systems (eg, NetBSD) threads still call interceptors while
@@ -34,8 +43,8 @@ _self_destruct(void *arg)
         return;
 
     mempool_free(arg);
-    int err = pthread_setspecific(_key, 0);
-    assert(err == 0);
+    if (pthread_setspecific(_key, 0) != 0)
+        abort();
 }
 
 static tdata_t *
@@ -50,8 +59,8 @@ _self_construct(event_t event)
     td->guard = 0;
     td->tid   = vatomic64_inc_get(&_task_count);
 
-    int err = pthread_setspecific(_key, td);
-    assert(err == 0);
+    if (pthread_setspecific(_key, td) != 0)
+        abort();
 
     return td;
 }
@@ -68,47 +77,28 @@ _self_handle(token_t token, event_t event, const void *arg, void *ret)
 
     chain_id chain = chain_from(token);
 
-    /* Short circuit and set tombstone if task terminating */
-    if (event == EVENT_TASK_FINI) {
-        assert(chain == INTERCEPT_AT);
-
-        task_id tid = td->tid;
-        _self_destruct(td);
-        td = NULL;
-
-        /* We republish the event to ensure all subscribers know about the task
-         * termination */
-        self_event_t val = {
-            .tid = tid,
-            .arg = arg,
-        };
-        PS_REPUBLISH(event, &val, ret);
-        return;
-    }
-
     if ((chain == INTERCEPT_BEFORE && td->guard++ == 0) ||
         (chain == INTERCEPT_AFTER && td->guard-- == 1) ||
         (chain == INTERCEPT_AT && td->guard == 0)) {
         td->guard++;
-
-        self_event_t val = {
-            .tid = td->tid,
-            .arg = arg,
-        };
-        PS_REPUBLISH(event, &val, ret);
-
+        PS_REPUBLISH(event, arg, ret);
         td->guard--;
     }
+
+    /* Destruct task data */
+    if (event == EVENT_TASK_FINI)
+        _self_destruct(td);
 }
 
+/* Filter all events guarding from reentries */
 PS_SUBSCRIBE(ANY_CHAIN, {
     _self_handle(token, event, arg, ret);
     return false;
 })
 
 BINGO_MODULE_INIT({
-    int err = pthread_key_create(&_key, _self_destruct);
-    assert(err == 0);
+    if (pthread_key_create(&_key, _self_destruct) != 0)
+        abort();
 
     /* Construct TLS for main thread, but do not publish any event. Downstream
      * handlers should learn the existence of the main thread on demand. */

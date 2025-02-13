@@ -5,8 +5,6 @@
 #ifndef BINGO_AUTOCEPT_H
 #define BINGO_AUTOCEPT_H
 
-#define EVENT_AUTOCEPT 3000
-
 typedef struct {
     const char *fname;
 } autocept_event_t;

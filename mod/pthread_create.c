@@ -11,6 +11,7 @@
 #include <bingo/mempool.h>
 #include <bingo/module.h>
 #include <bingo/real.h>
+#include <bingo/self.h>
 
 typedef struct {
     void *(*run)(void *);

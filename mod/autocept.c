@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: MIT
  */
 #include "autocept.h"
+#include "defs.h"
 #include <bingo/intercept.h>
 #include <bingo/module.h>
 #include <bingo/real.h>
