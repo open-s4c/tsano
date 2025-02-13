@@ -5,6 +5,17 @@
 /*******************************************************************************
  * @file self.c
  * @brief Thread "self-awareness"
+ *
+ * This module implements TLS management with the memory from mempool.h and
+ * guards further modules from receiving events before tasks are initialized or
+ * after they are finished.
+ *
+ * The module subscribes to all chains of the pubsub and should be initialized
+ * as first module so that it is placed at the start of each chain. The module
+ * blocks any events of a thread until the thread publishes a TASK_INIT event.
+ * It also blocks any event of a thread after it sends a TASK_FINI event.
+ *
+ * This should be the first module subscribing to all events from pubsub.
  ******************************************************************************/
 #include <assert.h>
 #include <pthread.h>
