@@ -30,6 +30,7 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #include <bingo/module.h>
 
@@ -116,15 +117,16 @@ int ps_subscribe(chain_id chain, ps_callback_f cb);
     }                                                                          \
     static void BINGO_CTOR _ps_subscribe_##chain(void)                         \
     {                                                                          \
-        int err = ps_subscribe(chain, _ps_callback_##chain);                   \
-        assert(err == PS_SUCCESS);                                             \
+        if (ps_subscribe(chain, _ps_callback_##chain) != PS_SUCCESS)           \
+            abort();                                                           \
     }
 
 /* PS_PUBLISH macro publishes to `chain` with a non-exclusive token. */
 #define PS_PUBLISH(chain, event, arg, ret)                                     \
     do {                                                                       \
-        int err = ps_publish(ps_advertise(chain, false), event, arg, ret);     \
-        assert(err == PS_SUCCESS);                                             \
+        if (ps_publish(ps_advertise(chain, false), event, arg, ret) !=         \
+            PS_SUCCESS)                                                        \
+            abort();                                                           \
     } while (0);
 
 /* PS_REPUBLISH macro republishes to the suffix of a chain.
@@ -137,8 +139,8 @@ int ps_subscribe(chain_id chain, ps_callback_f cb);
  */
 #define PS_REPUBLISH(event, arg, ret)                                          \
     do {                                                                       \
-        int err = ps_publish((token), event, arg, ret);                        \
-        assert(err == PS_SUCCESS);                                             \
+        if (ps_publish((token), event, arg, ret) != PS_SUCCESS)                \
+            abort();                                                           \
     } while (0);
 
 #endif /* BINGO_PUBSUB_H */
