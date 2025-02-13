@@ -1,0 +1,25 @@
+/*
+ * Copyright (C) Huawei Technologies Co., Ltd. 2023-2025. All rights reserved.
+ * SPDX-License-Identifier: MIT
+ */
+#ifndef BINGO_SWITCHER_H
+#define BINGO_SWITCHER_H
+
+#include <stdbool.h>
+
+#include <bingo/now.h>
+#include <bingo/task_id.h>
+
+#ifndef SWITCHER_NBUCKETS
+    #define SWITCHER_NBUCKETS 128
+#endif
+
+int switcher_yield(task_id id, bool any);
+void switcher_wake(task_id id, nanosec_t slack);
+void switcher_abort(void);
+
+#define SWITCHER_CONTINUE 0
+#define SWITCHER_CHANGED  1
+#define SWITCHER_ABORTED  2
+
+#endif /* BINGO_SWITCHER_H */
