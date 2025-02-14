@@ -5,8 +5,8 @@
 #ifndef BINGO_SELF_H
 #define BINGO_SELF_H
 
-#include <bingo/task_id.h>
+#include <bingo/thread_id.h>
 
-task_id self_id(void);
+thread_id self_id(void);
 
 #endif /* BINGO_SELF_H */

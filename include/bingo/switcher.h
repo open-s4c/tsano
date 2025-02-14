@@ -8,14 +8,14 @@
 #include <stdbool.h>
 
 #include <bingo/now.h>
-#include <bingo/task_id.h>
+#include <bingo/thread_id.h>
 
 #ifndef SWITCHER_NBUCKETS
     #define SWITCHER_NBUCKETS 128
 #endif
 
-int switcher_yield(task_id id, bool any);
-void switcher_wake(task_id id, nanosec_t slack);
+int switcher_yield(thread_id id, bool any);
+void switcher_wake(thread_id id, nanosec_t slack);
 void switcher_abort(void);
 
 #define SWITCHER_CONTINUE 0

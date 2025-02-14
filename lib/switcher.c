@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: MIT
  */
 /*******************************************************************************
- * Switcher is a sort of barrier where tasks get blocked until it's their
- * turn. The interface is basically yield() to block a task and wake() to
- * enable a specific task. The task enabled does not necessarily has to be
+ * Switcher is a sort of barrier where threads get blocked until it's their
+ * turn. The interface is basically yield() to block a thread and wake() to
+ * enable a specific thread. The thread enabled does not necessarily has to be
  * in the switcher at the moment it becomes enabled (it may arrive later).
  ******************************************************************************/
 #include <assert.h>
@@ -34,8 +34,8 @@ typedef struct {
     vmutex_t mutex;
     vcond_t cnd[SWITCHER_NBUCKETS];
     int cnd_counter[SWITCHER_NBUCKETS];
-    task_id next;
-    task_id prev;
+    thread_id next;
+    thread_id prev;
     int status;
     nanosec_t slack;
 } switcher_t;
@@ -48,10 +48,10 @@ _switcher_resuming(void)
 }
 
 int
-switcher_yield(task_id id, bool any)
+switcher_yield(thread_id id, bool any)
 {
-    task_id prev, next;
-    log_debugf("\t\t\t\tYIELD  task %lu\n", id);
+    thread_id prev, next;
+    log_debugf("\t\t\t\tYIELD  thread %lu\n", id);
 
     vmutex_acquire(&_switcher.mutex);
     next = _switcher.next;
@@ -67,7 +67,7 @@ switcher_yield(task_id id, bool any)
 
     while (next != id && _switcher.status != SWITCHER_ABORTED &&
            /* if any == false, the next condition is disabled */
-           (!any || next != ANY_TASK)) {
+           (!any || next != ANY_THREAD)) {
         vcond_signal(&_switcher.cnd[bucket]);
         vcond_wait(&_switcher.cnd[bucket], &_switcher.mutex);
         if (_switcher.slack) {
@@ -89,38 +89,38 @@ switcher_yield(task_id id, bool any)
 
     prev            = _switcher.prev;
     _switcher.prev  = id;
-    _switcher.next  = NO_TASK;
+    _switcher.next  = NO_THREAD;
     _switcher.slack = 0;
 
     int status;
 
     _switcher.status =
-        prev != id || next == ANY_TASK ? SWITCHER_CHANGED : SWITCHER_CONTINUE;
+        prev != id || next == ANY_THREAD ? SWITCHER_CHANGED : SWITCHER_CONTINUE;
 
     status = _switcher.status;
 
     vmutex_release(&_switcher.mutex);
 
     _switcher_resuming();
-    log_debugf("\t\t\t\tRESUME task %lu\n", id);
+    log_debugf("\t\t\t\tRESUME thread %lu\n", id);
 
     return status;
 }
 
 void
-switcher_wake(task_id id, nanosec_t slack)
+switcher_wake(thread_id id, nanosec_t slack)
 {
-    log_debugf("\t\t\t\tWAKE   task %lu\n", id);
+    log_debugf("\t\t\t\tWAKE   thread %lu\n", id);
 
     vmutex_acquire(&_switcher.mutex);
-    ASSERT(_switcher.next == NO_TASK);
-    ASSERT(id != NO_TASK);
+    ASSERT(_switcher.next == NO_THREAD);
+    ASSERT(id != NO_THREAD);
 
     int bucket = id % SWITCHER_NBUCKETS;
 
     _switcher.next  = id;
     _switcher.slack = slack;
-    if (id == ANY_TASK) {
+    if (id == ANY_THREAD) {
         for (int i = 0; i < SWITCHER_NBUCKETS; i++) {
             if (_switcher.cnd_counter[i] > 0) {
                 vcond_signal(&_switcher.cnd[i]);

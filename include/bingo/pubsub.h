@@ -82,7 +82,7 @@ token_t ps_advertise(chain_id chain, bool exclusive);
  *
  * The chain is identified by the token retrieved with `ps_advertise`. The type
  * of the event is given by `event`. Arguments `arg` and `ret` are input and
- * output arguments, respectively. They can be set to NULL. It is task of the
+ * output arguments, respectively. They can be set to NULL. It is thread of the
  * subscribing handler to test for NULL and to cast `arg` and `ret` to correct
  * types based on `event`.
  *
