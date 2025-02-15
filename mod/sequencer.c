@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: MIT
  */
 #include <bingo/log.h>
+#include <bingo/memaccess.h>
 #include <bingo/pubsub.h>
 #include <bingo/self.h>
 #include <bingo/switcher.h>

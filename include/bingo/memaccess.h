@@ -21,10 +21,10 @@
 #define EVENT_MA_CMPXCHG_WEAK (7 + _EVENT_MA_START)
 #define EVENT_MA_FENCE        (8 + _EVENT_MA_START)
 
-typedef struct {
-    void *pc;
+typedef struct memaccess {
     const char *func;
-    void *addr;
+    uintptr_t pc;
+    uintptr_t addr;
     size_t size;
     union {
         uint8_t argu8;

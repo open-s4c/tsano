@@ -24,7 +24,9 @@ BINGO_MODULE_INIT()
 #define PARAM_SUF  0
 #define EV_TYPE(...) 0
 #define UPCASE
+#define SZ 0
 #define FUNC
+#define BITS 0
 #define _tmpl_unmute // --------------------------------------------------------
 _tmpl_map(nix,)
 _tmpl_map(UPCASE,_tmpl_upcase)
@@ -67,13 +69,12 @@ void
 __tsan_PFXFUNCSZ(void *a)
 {
 
-        //memaccess_t ma = {.pc      = 0,
-        //                  .func    = #F,
-        //                  .addr    = addr_ptr(a),
-        //                  .size    = SIZE,
-        //                  .argu128 = (__uint128_t)v,
-        //                  0};
-    intercept_at(EV_TYPE(FUNC), 0, 0);
+    memaccess_t ma = {.pc      = 0,
+                      .func    = "PFXFUNCSZ",
+                      .addr    = (uintptr_t) a,
+                      .size    = SZ,
+                      0};
+    intercept_at(EV_TYPE(FUNC), &ma, 0);
 }
 _tmpl_end()
 
@@ -92,9 +93,15 @@ uintBITS_t
 __tsan_atomicBITS_load(const volatile uintBITS_t *a, int mo)
 {
     (void) mo;
-    intercept_before(EV_TYPE(AREAD), 0, 0);
+    memaccess_t ma = {.pc      = 0,
+                      .func    = "atomicBITS_load",
+                      .addr    = (uintptr_t) a,
+                      .size    = (BITS>>3),
+                      0};
+    intercept_before(EV_TYPE(AREAD), &ma, 0);
     uintBITS_t r = __atomic_load_n(a, __ATOMIC_SEQ_CST);
-    intercept_after(EV_TYPE(AREAD), 0, 0);
+    ma.argu128 = (__uint128_t) r;
+    intercept_after(EV_TYPE(AREAD), &ma, 0);
     return r;
 }
 _tmpl_end()
@@ -105,9 +112,15 @@ void
 __tsan_atomicBITS_store(volatile uintBITS_t *a, uintBITS_t v, int mo)
 {
     (void) mo;
-    intercept_before(EV_TYPE(AWRITE), 0, 0);
+    memaccess_t ma = {.pc      = 0,
+                      .func    = "atomicBITS_store",
+                      .addr    = (uintptr_t) a,
+                      .size    = (BITS>>3),
+                      .argu128 = (__uint128_t) v,
+                      0};
+    intercept_before(EV_TYPE(AWRITE), &ma, 0);
     __atomic_store_n(a, v, __ATOMIC_SEQ_CST);
-    intercept_after(EV_TYPE(AWRITE), 0, 0);
+    intercept_after(EV_TYPE(AWRITE), &ma, 0);
 }
 _tmpl_end()
 
@@ -118,9 +131,16 @@ uintBITS_t
 __tsan_atomicBITS_exchange(volatile uintBITS_t *a, uintBITS_t v, int mo)
 {
     (void) mo;
-    intercept_before(EV_TYPE(XCHG), 0, 0);
+    memaccess_t ma = {.pc      = 0,
+                      .func    = "atomicBITS_exchange",
+                      .addr    = (uintptr_t) a,
+                      .size    = (BITS>>3),
+                      .argu128 = (__uint128_t) v,
+                      0};
+    intercept_before(EV_TYPE(XCHG), &ma, 0);
     uintBITS_t r = __atomic_exchange_n(a, v, __ATOMIC_SEQ_CST);
-    intercept_after(EV_TYPE(XCHG), 0, 0);
+    ma.argu128 = (__uint128_t) r;
+    intercept_after(EV_TYPE(XCHG), &ma, 0);
     return r;
 }
 _tmpl_end()
@@ -131,9 +151,16 @@ uintBITS_t
 __tsan_atomicBITS_fetch_OP(volatile uintBITS_t *a, uintBITS_t v, int mo)
 {
     (void) mo;
-    intercept_before(EV_TYPE(RMW), 0, 0);
+    memaccess_t ma = {.pc      = 0,
+                      .func    = "atomicBITS_fetch_OP",
+                      .addr    = (uintptr_t) a,
+                      .size    = (BITS>>3),
+                      .argu128 = (__uint128_t) v,
+                      0};
+    intercept_before(EV_TYPE(RMW), &ma, 0);
     uintBITS_t r = __atomic_fetch_OP(a, v, __ATOMIC_SEQ_CST);
-    intercept_after(EV_TYPE(RMW), 0, 0);
+    ma.argu128 = (__uint128_t) r;
+    intercept_after(EV_TYPE(RMW), &ma, 0);
     return r;
 }
 _tmpl_end()
@@ -144,7 +171,13 @@ _tmpl_begin(SUF=[[strong;weak]], BITS=[[8;16;32;64]])
 int
 __tsan_atomicBITS_compare_exchange_SUF(volatile uintBITS_t *a, uintBITS_t *c, uintBITS_t v, int mo)
 {
-    intercept_before(EV_TYPE(CMPXCHG), 0, 0);
+    memaccess_t ma = {.pc      = 0,
+                      .func    = "atomicBITS_compare_exchange_SUF",
+                      .addr    = (uintptr_t) a,
+                      .size    = (BITS>>3),
+                      .argu128 = (__uint128_t) v,
+                      0};
+    intercept_before(EV_TYPE(CMPXCHG), &ma, 0);
     int r = __atomic_compare_exchange_n(a, c, v, PARAM_SUF, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
     intercept_after(EV_TYPE(CMPXCHG), 0, 0);
     return r;
@@ -156,7 +189,13 @@ _tmpl_begin(BITS=[[8;16;32;64]])
 uintBITS_t
 __tsan_atomicBITS_compare_exchange_val(volatile uintBITS_t *a, uintBITS_t c, uintBITS_t v, int mo)
 {
-    intercept_before(EV_TYPE(CMPXCHG), 0, 0);
+    memaccess_t ma = {.pc      = 0,
+                      .func    = "atomicBITS_compare_exchange_val",
+                      .addr    = (uintptr_t) a,
+                      .size    = (BITS>>3),
+                      .argu128 = (__uint128_t) v,
+                      0};
+    intercept_before(EV_TYPE(CMPXCHG), &ma, 0);
     (void)__atomic_compare_exchange_n(a, &c, v, 0, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
     intercept_after(EV_TYPE(CMPXCHG), 0, 0);
     return c;
