@@ -5,6 +5,7 @@
 #ifndef BINGO_LOG_H
 #define BINGO_LOG_H
 
+#include <inttypes.h>
 #include <stdio.h>
 #include <unistd.h>
 #define LOG_MSG_MAX 1024

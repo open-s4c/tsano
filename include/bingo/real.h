@@ -13,12 +13,9 @@
 
 #include <bingo/module.h>
 
-BINGO_WEAK void *real_func_impl(const char *fname, const char *lib);
 static inline void *
 real_func(const char *fname, const char *lib)
 {
-    if (real_func_impl)
-        return real_func_impl(fname, lib);
     return dlsym(RTLD_NEXT, fname);
 }
 

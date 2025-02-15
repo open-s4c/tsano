@@ -3,7 +3,9 @@
  * SPDX-License-Identifier: MIT
  */
 
+#ifdef __linux__
 .section .note.GNU-stack,"",@progbits
+#endif
 
 #if defined(__x86_64__)
 #include "autocept_x86_64.S"

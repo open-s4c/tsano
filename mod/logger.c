@@ -10,7 +10,8 @@
 #define ADD_LOGGER(CHAIN)                                                      \
     PS_SUBSCRIBE(CHAIN, {                                                      \
         char *chain = #CHAIN;                                                  \
-        log_printf("%s\t%u[%lx]\n", chain, event, (uint64_t)pthread_self());   \
+        log_printf("%s\t%u[%" PRIx64 "]\n", chain, event,                      \
+                   (uint64_t)pthread_self());                                  \
     })
 
 ADD_LOGGER(INTERCEPT_BEFORE)

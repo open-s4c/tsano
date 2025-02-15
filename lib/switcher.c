@@ -23,10 +23,12 @@
 
 #define ASSERT assert
 
-#undef log_debugf
-#define log_debugf(...)                                                        \
-    do {                                                                       \
-    } while (0)
+#ifndef SWITCHER_LOG
+    #undef log_debugf
+    #define log_debugf(...)                                                    \
+        do {                                                                   \
+        } while (0)
+#endif
 
 BINGO_MODULE_INIT()
 
@@ -51,7 +53,7 @@ int
 switcher_yield(thread_id id, bool any)
 {
     thread_id prev, next;
-    log_debugf("\t\t\t\tYIELD  thread %lu\n", id);
+    log_debugf("\t\t\t\tYIELD  thread %" PRIu64 "\n", id);
 
     vmutex_acquire(&_switcher.mutex);
     next = _switcher.next;
@@ -102,7 +104,7 @@ switcher_yield(thread_id id, bool any)
     vmutex_release(&_switcher.mutex);
 
     _switcher_resuming();
-    log_debugf("\t\t\t\tRESUME thread %lu\n", id);
+    log_debugf("\t\t\t\tRESUME thread %" PRIu64 "\n", id);
 
     return status;
 }
@@ -110,7 +112,7 @@ switcher_yield(thread_id id, bool any)
 void
 switcher_wake(thread_id id, nanosec_t slack)
 {
-    log_debugf("\t\t\t\tWAKE   thread %lu\n", id);
+    log_debugf("\t\t\t\tWAKE   thread %" PRIu64 "\n", id);
 
     vmutex_acquire(&_switcher.mutex);
     ASSERT(_switcher.next == NO_THREAD);

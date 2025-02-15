@@ -280,7 +280,7 @@ uset_print(const uset_t *uset)
     for (size_t i = 0; i < uset->size; i++) {
         if (i != 0)
             log_printf(", ");
-        log_printf("%lu", uset->items[i]);
+        log_printf("%" PRIu64 "", uset->items[i]);
     }
     log_printf("]\n");
 }
