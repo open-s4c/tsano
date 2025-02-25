@@ -8,12 +8,21 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <bingo/module.h>
 #include <bingo/mempool.h>
+#include <bingo/module.h>
 #include <vsync/spinlock/caslock.h>
 #define ASSERT assert
 
-static size_t _sizes[] = {32, 128, 512, 1024, 2048, 8192, 1024 * 1024};
+const size_t mempool_size = 1024 * 1024 * 200;
+static size_t _sizes[]    = {32,
+                             128,
+                             512,
+                             1024,
+                             2048,
+                             8192,
+                             1 * 1024 * 1024,
+                             4 * 1024 * 1024,
+                             8 * 1024 * 1024};
 #define NSTACKS (sizeof(_sizes) / sizeof(size_t))
 
 unsigned int
@@ -132,10 +141,7 @@ mempool_free(void *ptr)
     caslock_release(&mp->lock);
 }
 
-BINGO_MODULE_INIT({
-    const size_t size = 10 * 1024 * 1024;
-    _mempool_init(size);
-})
+BINGO_MODULE_INIT({ _mempool_init(mempool_size); })
 
 BINGO_MODULE_FINI({
     // log_debugf("allocated memory on fini: %lu\n", _mp.allocated);
