@@ -12,7 +12,6 @@
 #include <bingo/intercept.h>
 #include <bingo/memaccess.h>
 #include <bingo/module.h>
-#include <bingo/stacktrace.h>
 
 BINGO_MODULE_INIT()
 
@@ -77,16 +76,13 @@ void
 __tsan_release(void *addr)
 {
 }
-
 void
 __tsan_func_entry(void *pc)
 {
-    intercept_at(EVENT_STACKTRACE_ENTER, 0, 0);
 }
 void
 __tsan_func_exit(void)
 {
-    intercept_at(EVENT_STACKTRACE_EXIT, 0, 0);
 }
 
 /* plain reads and writes */
