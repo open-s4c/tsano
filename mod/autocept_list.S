@@ -16,35 +16,21 @@
 #include "autocept_generic.S"
 
 // general libc functions
-//add_interceptor rand
-//add_interceptor time
-//add_interceptor sleep
+add_interceptor rand
+add_interceptor time
+add_interceptor sleep
 add_interceptor puts
 add_interceptor atexit
-//add_interceptor atexit
-//add_interceptor exit
-//add_interceptor _libc_init
+add_interceptor printf
+add_interceptor exit
+add_interceptor abort
+add_interceptor malloc
+add_interceptor free
+add_interceptor fwrite
+add_interceptor fread
 
-// pthreads
-//add_interceptor pthread_rwlock_wrlock
-//add_interceptor pthread_rwlock_rdlock
-//add_interceptor pthread_rwlock_unlock
-//add_interceptor pthread_yield
-//add_interceptor pthread_once
-// pthread create and join
-//add_interceptor pthread_join
-//add_interceptor pthread_exit
+add_interceptor __cxa_guard_abort
+add_interceptor __cxa_guard_acquire
+add_interceptor __cxa_guard_release
+add_interceptor __cxa_atexit
 
-//add_interceptor sem_timedwait
-//add_interceptor sem_wait
-
-//add_interceptor epoll_wait
-//add_interceptor ioctl
-
-// C++ std::thread create and join
-// add_interceptor _ZNSt6thread15_M_start_threadESt10unique_ptrINS_6_StateESt14default_deleteIS1_EEPFvvE
-// add_interceptor _ZNSt6thread4joinEv
-//add_interceptor _ZNSt6thread6_StateD2Ev
-
-// add_warn  __tsan_init
-// add_warn  __libc_start_main
