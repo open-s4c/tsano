@@ -1,6 +1,6 @@
 /*
- * Copyright (C) Huawei Technologies Co., Ltd. 2023-2024. All rights reserved.
- * Author: Huawei Dresden Research Center
+ * Copyright (C) Huawei Technologies Co., Ltd. 2025. All rights reserved.
+ * SPDX-License-Identifier: MIT
  */
 
 #ifndef VSYNC_CACHEDPOOL_H
