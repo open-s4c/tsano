@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 project(bingo
-        LANGUAGES C ASM
+        LANGUAGES C CXX ASM
         VERSION 0.1)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -14,7 +14,11 @@ add_compile_options(
     -Wno-switch
     -Wno-unused-parameter
     -Wno-missing-field-initializers
-    -Wno-override-init)
+    $<$<COMPILE_LANGUAGE:C>:-Wno-override-init>)
+
+if(CMAKE_SYSTEM_NAME MATCHES "NetBSD")
+    add_compile_options(-D_XOPEN_SOURCE=700)
+endif()
 
 include_directories(include)
 include_directories(vendor/include)
