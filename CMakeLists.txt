@@ -20,8 +20,11 @@ if(CMAKE_SYSTEM_NAME MATCHES "NetBSD")
     add_compile_options(-D_XOPEN_SOURCE=700)
 endif()
 
+find_package(libvsync 4.2 CONFIG REQUIRED)
+add_library(vsync INTERFACE IMPORTED)
+link_libraries(vsync)
+
 include_directories(include)
-include_directories(vendor/include)
 add_subdirectory(lib)
 add_subdirectory(mod)
 add_subdirectory(tsano)
