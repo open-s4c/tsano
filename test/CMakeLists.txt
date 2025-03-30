@@ -1,7 +1,20 @@
+add_compile_options(-DVATOMIC_BUILTINS)
+set(TSAN_mp on)
+set(BINGO_simple on)
+
 file(GLOB SRCS *.c)
 foreach(SRC ${SRCS})
 	get_filename_component(TEST ${SRC} NAME_WLE)
 	set(TARGET ${TEST})
 	add_executable(${TARGET} ${SRC})
-	target_link_libraries(${TARGET} PRIVATE bingo pthread)
+    	target_link_libraries(${TARGET} PRIVATE pthread)
+
+	if(BINGO_${TARGET})
+        	target_link_libraries(${TARGET} PRIVATE bingo)
+	endif()
+
+	if(TSAN_${TARGET})
+	    target_compile_options(${TARGET} PRIVATE -fsanitize=thread)
+	    target_link_libraries(${TARGET} PRIVATE tsan)
+	endif()
 endforeach()
