@@ -25,7 +25,6 @@ add_library(vsync INTERFACE IMPORTED)
 link_libraries(vsync)
 
 include_directories(include)
-include_directories(vendor/rbtree/include)
 add_subdirectory(lib)
 add_subdirectory(mod)
 add_subdirectory(tsano)
