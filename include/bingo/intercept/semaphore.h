@@ -13,6 +13,7 @@ enum sem_events {
 };
 
 struct sem_event {
+    const void *pc;
     void *sem;
     int ret;
 };

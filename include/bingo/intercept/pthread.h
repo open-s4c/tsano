@@ -5,6 +5,8 @@
 #ifndef BINGO_PTHREAD_H
 #define BINGO_PTHREAD_H
 
+#include <pthread.h>
+
 #include <bingo/thread_id.h>
 
 enum pthread_events {
@@ -19,14 +21,28 @@ enum pthread_events {
     EVENT_COND_BROADCAST = 404,
 };
 
+struct pthread_create_event {
+    const void *pc;
+    const pthread_t *thread;
+    int ret;
+};
+
+struct pthread_join_event {
+    const void *pc;
+    const pthread_t thread;
+    int ret;
+};
+
 struct pthread_mutex_event {
-    void *mutex;
+    const void *pc;
+    const void *mutex;
     int ret;
 };
 
 struct pthread_cond_event {
-    void *cond;
-    void *mutex;
+    const void *pc;
+    const void *cond;
+    const void *mutex;
     int ret;
 };
 

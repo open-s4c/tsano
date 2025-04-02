@@ -4,6 +4,7 @@
  */
 #ifndef BINGO_MALLOC_H
 #define BINGO_MALLOC_H
+#include <stddef.h>
 
 enum malloc_events {
     EVENT_MALLOC         = 700,
@@ -15,8 +16,9 @@ enum malloc_events {
 };
 
 struct malloc_event {
+    const void *pc;
     size_t size;
-    void *addr;
+    void *ptr;
     int ret;
 };
 
