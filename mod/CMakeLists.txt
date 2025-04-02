@@ -10,6 +10,8 @@ foreach(SRC ${SRCS})
 	add_library(${TARGET} SHARED ${SRC})
 	target_link_libraries(${TARGET} PRIVATE bingo)
 	set_target_properties(${TARGET} PROPERTIES PREFIX "")
+
+	install(TARGETS ${TARGET} DESTINATION lib/bingo)
 endforeach()
 
 target_sources(autocept PRIVATE autocept_list.S)

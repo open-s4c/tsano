@@ -25,7 +25,16 @@ add_library(vsync INTERFACE IMPORTED)
 link_libraries(vsync)
 
 include_directories(include)
+include_directories(vendor/rbtree/include)
 add_subdirectory(lib)
 add_subdirectory(mod)
 add_subdirectory(tsano)
 add_subdirectory(test)
+
+# Installation
+
+include(GNUInstallDirs)
+include(CheckSymbolExists)
+include(cmake/export.cmake)
+install(DIRECTORY include/bingo DESTINATION include)
+install(TARGETS bingo EXPORT ${PROJECT_TARGETS})
