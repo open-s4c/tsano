@@ -121,6 +121,37 @@ int ps_subscribe(chain_id chain, ps_callback_f cb);
             abort();                                                           \
     }
 
+/* PS_SUBSCRIBE_EVENT macro subscribes a handler for a specific event.
+ *
+ * It works similarly to PS_SUBSCRIBE, but the event is also specified.
+ */
+#define PS_SUBSCRIBE_EVENT(chain, EVENT, CALLBACK)                             \
+    static bool _ps_callback_##chain##_##EVENT(token_t token, event_t event,   \
+                                               const void *arg, void *ret)     \
+    {                                                                          \
+        if (event == EVENT) {                                                  \
+            CALLBACK;                                                          \
+        }                                                                      \
+        return true;                                                           \
+    }                                                                          \
+    static void BINGO_CTOR _ps_subscribe_##chain##_##EVENT(void)               \
+    {                                                                          \
+        if (ps_subscribe(chain, _ps_callback_##chain##_##EVENT) != PS_SUCCESS) \
+            abort();                                                           \
+    }
+
+/* EVENT_PAYLOAD casts the event argument `arg` to type of the given variable.
+ *
+ * This macro is intended to be used with PS_SUBSCRIBE_EVENT. The user must know
+ * the type of the argument and then the following pattern can be used:
+ *
+ *     PS_SUBSCRIBE_EVENT(SOME_CHAIN, SOME_EVENT, {
+ *         const some_known_type *ev = EVENT_PAYLOAD(ev);
+ *         ...
+ *         })
+ */
+#define EVENT_PAYLOAD(var) (__typeof(var))arg
+
 /* PS_PUBLISH macro publishes to `chain` with a non-exclusive token. */
 #define PS_PUBLISH(chain, event, arg, ret)                                     \
     do {                                                                       \
