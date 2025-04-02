@@ -4,6 +4,7 @@
  */
 #include <assert.h>
 #include <stdio.h>
+
 #include <bingo/pubsub.h>
 
 #define CHAIN         1

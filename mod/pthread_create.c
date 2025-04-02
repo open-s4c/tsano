@@ -2,12 +2,11 @@
  * Copyright (C) Huawei Technologies Co., Ltd. 2025. All rights reserved.
  * SPDX-License-Identifier: MIT
  */
-#include <assert.h>
 #include <pthread.h>
 #include <stdlib.h>
 
-#include "defs.h"
 #include <bingo/intercept.h>
+#include <bingo/intercept/pthread.h>
 #include <bingo/interpose.h>
 #include <bingo/mempool.h>
 #include <bingo/module.h>
@@ -51,19 +50,22 @@ INTERPOSE(int, pthread_create, pthread_t *thread, const pthread_attr_t *attr,
 
     t  = mempool_alloc(sizeof(trampoline_t));
     *t = (trampoline_t){.arg = arg, .run = run};
-    intercept_before(EVENT_THREAD_CREATE, 0, 0);
-    int ret = REAL(pthread_create, thread, attr, _trampoline, t);
-    intercept_after(EVENT_THREAD_CREATE, 0, 0);
-    assert(ret == 0);
-    return ret;
+
+    struct pthread_create_event ev = {.thread = thread, .pc = INTERPOSE_PC};
+    intercept_before(EVENT_THREAD_CREATE, &ev, 0);
+    ev.ret = REAL(pthread_create, thread, attr, _trampoline, t);
+    intercept_after(EVENT_THREAD_CREATE, &ev, 0);
+    return ev.ret;
 }
 
 INTERPOSE(int, pthread_join, pthread_t thread, void **ptr)
 {
-    intercept_before(EVENT_THREAD_JOIN, 0, 0);
-    int ret = REAL(pthread_join, thread, ptr);
-    intercept_after(EVENT_THREAD_JOIN, 0, 0);
-    return ret;
+    struct pthread_join_event ev = {.thread = thread, .pc = INTERPOSE_PC};
+    intercept_before(EVENT_THREAD_JOIN, &ev, 0);
+    ev.ret = REAL(pthread_join, thread, ptr);
+    intercept_after(EVENT_THREAD_JOIN, &ev, 0);
+
+    return ev.ret;
 }
 
 BINGO_MODULE_INIT()

@@ -22,8 +22,8 @@
 #define EVENT_MA_FENCE        (8 + _EVENT_MA_START)
 
 typedef struct memaccess {
+    const void *pc;
     const char *func;
-    uintptr_t pc;
     uintptr_t addr;
     size_t size;
     union {

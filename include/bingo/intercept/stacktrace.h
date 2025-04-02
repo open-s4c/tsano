@@ -10,8 +10,9 @@
 #define EVENT_STACKTRACE_EXIT  2001
 
 typedef struct {
+    const void *pc;
+    const void *caller;
     const char *fname;
-    uintptr_t pc;
 } stacktrace_event_t;
 
 #endif /* BINGO_STACKTRACE_H */

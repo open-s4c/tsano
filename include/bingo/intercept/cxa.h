@@ -14,6 +14,7 @@ enum cxa_events {
 };
 
 struct cxa_event {
+    const void *pc;
     void *addr;
     int ret;
 };

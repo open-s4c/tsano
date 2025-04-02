@@ -10,7 +10,8 @@
 #include <stdint.h>
 #include <bingo/module.h>
 #include <bingo/intercept.h>
-#include <bingo/memaccess.h>
+#include <bingo/intercept/memaccess.h>
+#include <bingo/interpose.h>
 
 BINGO_MODULE_INIT()
 
@@ -59,7 +60,7 @@ void
 __tsan_PFXFUNCSZ(void *a)
 {
 
-    memaccess_t ma = {.pc      = 0,
+    memaccess_t ma = {.pc      = INTERPOSE_PC,
                       .func    = "PFXFUNCSZ",
                       .addr    = (uintptr_t) a,
                       .size    = SZ,
@@ -83,7 +84,7 @@ uintBITS_t
 __tsan_atomicBITS_load(const volatile uintBITS_t *a, int mo)
 {
     (void) mo;
-    memaccess_t ma = {.pc      = 0,
+    memaccess_t ma = {.pc      = INTERPOSE_PC,
                       .func    = "atomicBITS_load",
                       .addr    = (uintptr_t) a,
                       .size    = (BITS>>3),
@@ -102,7 +103,7 @@ void
 __tsan_atomicBITS_store(volatile uintBITS_t *a, uintBITS_t v, int mo)
 {
     (void) mo;
-    memaccess_t ma = {.pc      = 0,
+    memaccess_t ma = {.pc      = INTERPOSE_PC,
                       .func    = "atomicBITS_store",
                       .addr    = (uintptr_t) a,
                       .size    = (BITS>>3),
@@ -121,7 +122,7 @@ uintBITS_t
 __tsan_atomicBITS_exchange(volatile uintBITS_t *a, uintBITS_t v, int mo)
 {
     (void) mo;
-    memaccess_t ma = {.pc      = 0,
+    memaccess_t ma = {.pc      = INTERPOSE_PC,
                       .func    = "atomicBITS_exchange",
                       .addr    = (uintptr_t) a,
                       .size    = (BITS>>3),
@@ -141,7 +142,7 @@ uintBITS_t
 __tsan_atomicBITS_fetch_OP(volatile uintBITS_t *a, uintBITS_t v, int mo)
 {
     (void) mo;
-    memaccess_t ma = {.pc      = 0,
+    memaccess_t ma = {.pc      = INTERPOSE_PC,
                       .func    = "atomicBITS_fetch_OP",
                       .addr    = (uintptr_t) a,
                       .size    = (BITS>>3),
@@ -161,7 +162,7 @@ _tmpl_begin(SUF=[[strong;weak]], BITS=[[8;16;32;64]])
 int
 __tsan_atomicBITS_compare_exchange_SUF(volatile uintBITS_t *a, uintBITS_t *c, uintBITS_t v, int mo)
 {
-    memaccess_t ma = {.pc      = 0,
+    memaccess_t ma = {.pc      = INTERPOSE_PC,
                       .func    = "atomicBITS_compare_exchange_SUF",
                       .addr    = (uintptr_t) a,
                       .size    = (BITS>>3),
@@ -169,7 +170,9 @@ __tsan_atomicBITS_compare_exchange_SUF(volatile uintBITS_t *a, uintBITS_t *c, ui
                       0};
     intercept_before(EV_TYPE(CMPXCHG), &ma, 0);
     int r = __atomic_compare_exchange_n(a, c, v, PARAM_SUF, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
-    intercept_after(EV_TYPE(CMPXCHG), 0, 0);
+    assert(r == 0 || r == 1);
+    ma.failed = r == 0;
+    intercept_after(EV_TYPE(CMPXCHG), &ma, 0);
     return r;
 }
 _tmpl_end()
@@ -179,15 +182,17 @@ _tmpl_begin(BITS=[[8;16;32;64]])
 uintBITS_t
 __tsan_atomicBITS_compare_exchange_val(volatile uintBITS_t *a, uintBITS_t c, uintBITS_t v, int mo)
 {
-    memaccess_t ma = {.pc      = 0,
+    memaccess_t ma = {.pc      = INTERPOSE_PC,
                       .func    = "atomicBITS_compare_exchange_val",
                       .addr    = (uintptr_t) a,
                       .size    = (BITS>>3),
                       .argu128 = (__uint128_t) v,
                       0};
     intercept_before(EV_TYPE(CMPXCHG), &ma, 0);
-    (void)__atomic_compare_exchange_n(a, &c, v, 0, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
-    intercept_after(EV_TYPE(CMPXCHG), 0, 0);
+    int r = __atomic_compare_exchange_n(a, &c, v, 0, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
+    assert(r == 0 || r == 1);
+    ma.failed = r == 0;
+    intercept_after(EV_TYPE(CMPXCHG), &ma, 0);
     return c;
 }
 _tmpl_end()

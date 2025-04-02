@@ -2,8 +2,8 @@
  * Copyright (C) Huawei Technologies Co., Ltd. 2025. All rights reserved.
  * SPDX-License-Identifier: MIT
  */
+#include <bingo/intercept/memaccess.h>
 #include <bingo/log.h>
-#include <bingo/memaccess.h>
 #include <bingo/pubsub.h>
 #include <bingo/self.h>
 #include <bingo/switcher.h>

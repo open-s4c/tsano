@@ -7,7 +7,6 @@
 #include <stdio.h>
 
 #include <bingo/intercept.h>
-#include <bingo/intercept/memaccess.h>
 #include <vsync/atomic.h>
 
 int data;
@@ -16,16 +15,15 @@ vatomic32_t ready;
 void *
 run0(void *_)
 {
-    intercept_at(EVENT_MA_AWRITE, 0, 0);
     vatomic32_write(&ready, 1);
     data = 1;
     return 0;
 }
+
 void *
 run1(void *_)
 {
     printf("here\n");
-    intercept_before(EVENT_MA_AREAD, 0, 0);
     if (vatomic32_read(&ready) == 1)
         assert(data == 1);
     printf("there\n");

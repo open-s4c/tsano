@@ -44,4 +44,8 @@
     #error Unsupported platform
 #endif
 
+
+#define INTERPOSE_PC __builtin_extract_return_addr(__builtin_return_address(0))
+
+
 #endif /* BINGO_INTERPOSE_H */

@@ -5,12 +5,12 @@
 #include <semaphore.h>
 
 #include <bingo/intercept.h>
+#include <bingo/intercept/semaphore.h>
 #include <bingo/interpose.h>
-#include <bingo/semaphore.h>
 
 INTERPOSE(int, sem_post, sem_t *sem)
 {
-    struct sem_event ev = {.sem = sem};
+    struct sem_event ev = {.sem = sem, .pc = INTERPOSE_PC};
     intercept_before(EVENT_SEM_POST, &ev, 0);
     ev.ret = REAL(sem_post, sem);
     intercept_after(EVENT_SEM_POST, &ev, 0);
@@ -19,7 +19,7 @@ INTERPOSE(int, sem_post, sem_t *sem)
 
 INTERPOSE(int, sem_wait, sem_t *sem)
 {
-    struct sem_event ev = {.sem = sem};
+    struct sem_event ev = {.sem = sem, .pc = INTERPOSE_PC};
     intercept_before(EVENT_SEM_WAIT, &ev, 0);
     ev.ret = REAL(sem_wait, sem);
     intercept_after(EVENT_SEM_WAIT, &ev, 0);
@@ -28,7 +28,7 @@ INTERPOSE(int, sem_wait, sem_t *sem)
 
 INTERPOSE(int, sem_trywait, sem_t *sem)
 {
-    struct sem_event ev = {.sem = sem};
+    struct sem_event ev = {.sem = sem, .pc = INTERPOSE_PC};
     intercept_before(EVENT_SEM_TRYWAIT, &ev, 0);
     ev.ret = REAL(sem_trywait, sem);
     intercept_after(EVENT_SEM_TRYWAIT, &ev, 0);
@@ -38,7 +38,7 @@ INTERPOSE(int, sem_trywait, sem_t *sem)
 #if defined(__linux__)
 INTERPOSE(int, sem_timedwait, sem_t *sem, const struct timespec *timeout)
 {
-    struct sem_event ev = {.sem = sem};
+    struct sem_event ev = {.sem = sem, .pc = INTERPOSE_PC};
     intercept_before(EVENT_SEM_TIMEDWAIT, &ev, 0);
     ev.ret = REAL(sem_timedwait, sem, timeout);
     intercept_after(EVENT_SEM_TIMEDWAIT, &ev, 0);

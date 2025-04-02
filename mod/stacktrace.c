@@ -10,19 +10,21 @@
 #include <stdint.h>
 
 #include <bingo/intercept.h>
+#include <bingo/intercept/stacktrace.h>
+#include <bingo/interpose.h>
 #include <bingo/module.h>
-#include <bingo/stacktrace.h>
 
 BINGO_MODULE_INIT()
 
 void
-__tsan_func_entry(void *pc)
+__tsan_func_entry(void *caller)
 {
-    intercept_at(EVENT_STACKTRACE_ENTER, 0, 0);
+    const stacktrace_event_t ev = {.caller = caller, .pc = INTERPOSE_PC};
+    intercept_at(EVENT_STACKTRACE_ENTER, &ev, 0);
 }
 void
 __tsan_func_exit(void)
 {
-    intercept_at(EVENT_STACKTRACE_EXIT, 0, 0);
+    const stacktrace_event_t ev = {.pc = INTERPOSE_PC};
+    intercept_at(EVENT_STACKTRACE_EXIT, &ev, 0);
 }
-
