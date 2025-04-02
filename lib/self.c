@@ -20,6 +20,7 @@
 #include <assert.h>
 #include <pthread.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <bingo/intercept.h>
 #include <bingo/log.h>
@@ -27,15 +28,24 @@
 #include <bingo/pubsub.h>
 #include <bingo/self.h>
 #include <vsync/atomic.h>
+#include <vsync/map/rbtree.h>
 
 typedef struct thread_data {
     int guard;
     thread_id tid;
+    vrbtree_t tls;
 } tdata_t;
+
+struct tls_item {
+    vrbtree_key_t key;
+    vrbtree_node_t embed;
+    char data[];
+};
 
 static vatomic64_t _thread_count = VATOMIC_INIT(0);
 static pthread_key_t _key;
 
+/* id and self implementation ----------------------------------------------- */
 thread_id
 self_id()
 {
@@ -43,6 +53,63 @@ self_id()
     return td ? td->tid : NO_THREAD;
 }
 
+static int
+_tls_cmp(vrbtree_node_t *node, vrbtree_key_t key)
+{
+    struct tls_item *item = V_CONTAINER_OF(node, struct tls_item, embed);
+    if (item->key < key)
+        return -1;
+    else if (item->key > key)
+        return 1;
+    else
+        return 0;
+}
+
+static void
+_tls_retire(vrbtree_node_t *node, void *args)
+{
+    V_UNUSED(node, args);
+}
+
+static void
+_tls_init(tdata_t *td)
+{
+    vrbtree_init(&td->tls, _tls_retire, NULL, _tls_cmp);
+}
+
+static void
+_tls_fini(tdata_t *td)
+{
+    // TODO: iterate over all items and mempool_free them
+    (void)td;
+}
+
+void *
+self_tls(const void *global, size_t size)
+{
+    vrbtree_key_t item_key = (vrbtree_key_t)global;
+    tdata_t *td            = pthread_getspecific(_key);
+
+    /* should never be called before the self initialization */
+    assert(td != NULL);
+
+    vrbtree_node_t *item = vrbtree_get(&td->tls, item_key);
+    if (item == NULL) {
+        struct tls_item *i = mempool_alloc(size + sizeof(struct tls_item));
+        if (i == NULL)
+            return NULL;
+        memset(&i->data, 0, size);
+        i->key  = item_key;
+        item    = &i->embed;
+        bool ok = vrbtree_add(&td->tls, item_key, item);
+        assert(ok);
+    }
+
+    struct tls_item *i = V_CONTAINER_OF(item, struct tls_item, embed);
+    return i->data;
+}
+
+/* pthread constructor and destructor --------------------------------------- */
 static void
 _self_destruct(void *arg)
 {
@@ -54,6 +121,7 @@ _self_destruct(void *arg)
     if (arg == NULL)
         return;
 
+    _tls_fini(arg);
     mempool_free(arg);
     if (pthread_setspecific(_key, 0) != 0)
         abort();
@@ -70,6 +138,7 @@ _self_construct(event_t event)
     td        = mempool_alloc(sizeof(tdata_t));
     td->guard = 0;
     td->tid   = vatomic64_inc_get(&_thread_count);
+    _tls_init(td);
 
     if (pthread_setspecific(_key, td) != 0)
         abort();
@@ -77,6 +146,7 @@ _self_construct(event_t event)
     return td;
 }
 
+/* pubsub handler ----------------------------------------------------------- */
 static void
 _self_handle(token_t token, event_t event, const void *arg, void *ret)
 {
