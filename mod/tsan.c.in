@@ -51,8 +51,6 @@ void __tsan_mutex_create(void *addr, unsigned flags) {}
 void __tsan_mutex_destroy(void *addr, unsigned flags) {}
 void __tsan_acquire(void *addr) {}
 void __tsan_release(void *addr) {}
-void __tsan_func_entry(void *pc) {}
-void __tsan_func_exit(void) {}
 
 /* plain reads and writes */
 _tmpl_begin(PFX=[[nix;unaligned_]], FUNC=[[read;write]], SZ=[[1;2;4;8;16]])

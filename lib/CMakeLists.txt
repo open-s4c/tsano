@@ -1,6 +1,9 @@
+add_executable(rbtree_test rbtree_test.c rbtree.c)
+
+
 add_library(bingo SHARED
 # Stateless components
-     uset.c
+     uset.c idmap.c rbtree.c
 
 # Stateful components
     mempool.c intercept.c

@@ -77,14 +77,6 @@ void
 __tsan_release(void *addr)
 {
 }
-void
-__tsan_func_entry(void *pc)
-{
-}
-void
-__tsan_func_exit(void)
-{
-}
 
 /* plain reads and writes */
 void
