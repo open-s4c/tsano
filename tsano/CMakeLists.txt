@@ -3,5 +3,4 @@ add_custom_target(
                   ${CMAKE_CURRENT_SOURCE_DIR}/tsano.c)
 
 add_library(tsano SHARED tsano.c)
-
 install(TARGETS tsano DESTINATION lib/bingo)

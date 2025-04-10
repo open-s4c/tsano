@@ -6,7 +6,6 @@
 #include <pthread.h>
 #include <stdio.h>
 
-#include <bingo/intercept.h>
 #include <vsync/atomic.h>
 
 int data;

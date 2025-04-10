@@ -356,6 +356,8 @@ _self_handle(token_t token, event_t event, const void *arg, void *ret)
 }
 
 /* Filter all events guarding from reentries */
+#undef BINGO_CTOR
+#define BINGO_CTOR __attribute__((constructor(256)))
 PS_SUBSCRIBE(ANY_CHAIN, {
     _self_handle(token, event, arg, ret);
     return false;

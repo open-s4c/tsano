@@ -137,9 +137,7 @@ int ps_subscribe_event(chain_id chain, event_t event, ps_callback_f cb);
     static bool _ps_callback_##chain##_##EVENT(token_t token, event_t event,   \
                                                const void *arg, void *ret)     \
     {                                                                          \
-        if (event == EVENT) {                                                  \
-            CALLBACK;                                                          \
-        }                                                                      \
+        CALLBACK;                                                              \
         return true;                                                           \
     }                                                                          \
     static void BINGO_CTOR _ps_subscribe_##chain##_##EVENT(void)               \

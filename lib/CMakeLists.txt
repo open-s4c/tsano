@@ -21,7 +21,8 @@ set(SRCS
     switcher.c)
 
 add_library(bingo SHARED ${SRCS})
-target_link_libraries(bingo PRIVATE pthread)
+target_link_libraries(bingo PUBLIC pthread bingo.h)
+install(TARGETS bingo DESTINATION lib)
 
 set(MODS
     # pthread library
@@ -42,5 +43,6 @@ set(MODS
 
 add_library(bingo.a STATIC ${SRCS} ${MODS})
 target_compile_options(bingo.a PRIVATE -fPIC)
-target_link_libraries(bingo.a STATIC pthread)
+target_link_libraries(bingo.a PUBLIC pthread bingo.h)
+set_target_properties(bingo.a PROPERTIES SUFFIX "")
 install(TARGETS bingo.a DESTINATION lib)
