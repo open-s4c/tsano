@@ -32,7 +32,7 @@ RUN.clone=	git checkout $(SHA)
 TARGET+=	patch
 DEP.patch=	.clone.run
 DIR.patch=	leveldb
-RUN.patch=	git apply $(ROOT)/patches/01-leveldb
+RUN.patch=	git checkout . && git apply $(ROOT)/patches/01-leveldb
 
 TARGET+=	lib
 CFG.lib=	cmake -S$(ROOT)/.. -DCMAKE_BUILD_TYPE=Release
