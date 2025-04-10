@@ -97,8 +97,16 @@ int ps_publish(token_t token, event_t event, const void *arg, void *ret);
  *
  * Returns 0 if success, otherwise non-zero.
  */
-
 int ps_subscribe(chain_id chain, ps_callback_f cb);
+
+
+/* ps_subscribe_event subscribes a handler `cb` in a chain for an `event`.
+ *
+ * The call order of `ps_subscribe_event` is the same as `ps_subscribe`.
+ *
+ * Returns 0 if success, otherwise non-zero.
+ */
+int ps_subscribe_event(chain_id chain, event_t event, ps_callback_f cb);
 
 /* PS_SUBSCRIBE macro creates a handler and subscribes to a chain.
  *
@@ -136,7 +144,8 @@ int ps_subscribe(chain_id chain, ps_callback_f cb);
     }                                                                          \
     static void BINGO_CTOR _ps_subscribe_##chain##_##EVENT(void)               \
     {                                                                          \
-        if (ps_subscribe(chain, _ps_callback_##chain##_##EVENT) != PS_SUCCESS) \
+        if (ps_subscribe_event(chain, (EVENT),                                 \
+                               _ps_callback_##chain##_##EVENT) != PS_SUCCESS)  \
             abort();                                                           \
     }
 

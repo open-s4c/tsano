@@ -24,6 +24,7 @@ typedef union {
 
 typedef struct {
     chain_id chain;
+    event_t event;
     ps_callback_f cb;
     int mode;
 } subscription_t;
@@ -64,6 +65,16 @@ ps_subscribe(chain_id chain, ps_callback_f cb)
 }
 
 int
+ps_subscribe_event(chain_id chain, event_t event, ps_callback_f cb)
+{
+    assert(_next_subscription < MAX_SUBSCRIPTIONS);
+    int idx = _next_subscription++;
+    _subscriptions[idx] =
+        (subscription_t){.chain = chain, .event = event, .cb = cb};
+    return PS_SUCCESS;
+}
+
+int
 ps_publish(token_t token, event_t event, const void *arg, void *ret)
 {
     timpl_t timpl;
@@ -79,6 +90,9 @@ ps_publish(token_t token, event_t event, const void *arg, void *ret)
         // start.
         subscription_t subs = _subscriptions[idx];
         if (subs.chain != timpl.details.chain && subs.chain != ANY_CHAIN)
+            continue;
+        // if the subscription filters a specific event that, drop non-matches
+        if (subs.event && subs.event != event)
             continue;
         if (sidx++ < timpl.details.index)
             continue;
