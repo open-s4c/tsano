@@ -6,14 +6,16 @@
 #define BINGO_MALLOC_H
 #include <stddef.h>
 
+#define _EVENT_START 50
 enum malloc_events {
-    EVENT_MALLOC         = 700,
-    EVENT_CALLOC         = 701,
-    EVENT_REALLOC        = 702,
-    EVENT_FREE           = 703,
-    EVENT_POSIX_MEMALIGN = 704,
-    EVENT_ALIGNED_ALLOC  = 705,
+    EVENT_MALLOC         = 0 + _EVENT_START,
+    EVENT_CALLOC         = 1 + _EVENT_START,
+    EVENT_REALLOC        = 2 + _EVENT_START,
+    EVENT_FREE           = 3 + _EVENT_START,
+    EVENT_POSIX_MEMALIGN = 4 + _EVENT_START,
+    EVENT_ALIGNED_ALLOC  = 5 + _EVENT_START,
 };
+#undef _EVENT_START
 
 struct malloc_event {
     const void *pc;

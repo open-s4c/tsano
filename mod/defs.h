@@ -6,7 +6,7 @@
 #define BINGO_MOD_DEFS_H
 
 enum events {
-    EVENT_AUTOCEPT = 3000,
+    EVENT_AUTOCEPT = 9,
 };
 
 #endif /* BINGO_MOD_DEFS_H */

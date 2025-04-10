@@ -5,12 +5,14 @@
 #ifndef BINGO_SEM_H
 #define BINGO_SEM_H
 
+#define _EVENT_START 70
 enum sem_events {
-    EVENT_SEM_POST      = 600,
-    EVENT_SEM_WAIT      = 601,
-    EVENT_SEM_TRYWAIT   = 602,
-    EVENT_SEM_TIMEDWAIT = 603,
+    EVENT_SEM_POST      = 0 + _EVENT_START,
+    EVENT_SEM_WAIT      = 1 + _EVENT_START,
+    EVENT_SEM_TRYWAIT   = 2 + _EVENT_START,
+    EVENT_SEM_TIMEDWAIT = 3 + _EVENT_START,
 };
+#undef _EVENT_START
 
 struct sem_event {
     const void *pc;

@@ -6,8 +6,12 @@
 #define BINGO_STACKTRACE_H
 #include <stdint.h>
 
-#define EVENT_STACKTRACE_ENTER 2000
-#define EVENT_STACKTRACE_EXIT  2001
+#define _EVENT_START 90
+enum stacktrace_events {
+    EVENT_STACKTRACE_ENTER = 0 + _EVENT_START,
+    EVENT_STACKTRACE_EXIT  = 1 + _EVENT_START,
+};
+#undef _EVENT_START
 
 typedef struct {
     const void *pc;

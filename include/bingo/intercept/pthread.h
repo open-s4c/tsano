@@ -9,17 +9,19 @@
 
 #include <bingo/thread_id.h>
 
+#define _EVENT_START 10
 enum pthread_events {
-    EVENT_THREAD_CREATE  = 200,
-    EVENT_THREAD_JOIN    = 201,
-    EVENT_MUTEX_LOCK     = 300,
-    EVENT_MUTEX_UNLOCK   = 301,
-    EVENT_MUTEX_TRYLOCK  = 302,
-    EVENT_COND_WAIT      = 401,
-    EVENT_COND_TIMEDWAIT = 402,
-    EVENT_COND_SIGNAL    = 403,
-    EVENT_COND_BROADCAST = 404,
+    EVENT_THREAD_CREATE  = 0 + _EVENT_START,
+    EVENT_THREAD_JOIN    = 1 + _EVENT_START,
+    EVENT_MUTEX_LOCK     = 2 + _EVENT_START,
+    EVENT_MUTEX_UNLOCK   = 3 + _EVENT_START,
+    EVENT_MUTEX_TRYLOCK  = 4 + _EVENT_START,
+    EVENT_COND_WAIT      = 5 + _EVENT_START,
+    EVENT_COND_TIMEDWAIT = 6 + _EVENT_START,
+    EVENT_COND_SIGNAL    = 7 + _EVENT_START,
+    EVENT_COND_BROADCAST = 8 + _EVENT_START,
 };
+#undef _EVENT_START
 
 struct pthread_create_event {
     const void *pc;

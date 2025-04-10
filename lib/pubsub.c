@@ -16,7 +16,8 @@ typedef union {
     token_t as_token;
 } timpl_t;
 
-#define MAX_SUBSCRIPTIONS 1024
+#define MAX_SUBSCRIPTIONS 512
+#define MAX_EVENT_IDS     512
 
 #define MODE_UNDEF   0
 #define MODE_EXCL    1
@@ -24,14 +25,17 @@ typedef union {
 
 typedef struct {
     chain_id chain;
-    event_t event;
     ps_callback_f cb;
     int mode;
 } subscription_t;
 
+struct event_subscriptions {
+    size_t next;
+    subscription_t subs[MAX_SUBSCRIPTIONS + 1];
+};
+
 static bool _initd;
-static unsigned int _next_subscription;
-static subscription_t _subscriptions[MAX_SUBSCRIPTIONS + 1];
+static struct event_subscriptions _evsubs[MAX_EVENT_IDS];
 
 chain_id
 chain_from(token_t token)
@@ -58,19 +62,21 @@ ps_advertise(chain_id chain, bool exclusive)
 int
 ps_subscribe(chain_id chain, ps_callback_f cb)
 {
-    assert(_next_subscription < MAX_SUBSCRIPTIONS);
-    int idx             = _next_subscription++;
-    _subscriptions[idx] = (subscription_t){.chain = chain, .cb = cb};
+    for (size_t i = 0; i < MAX_EVENT_IDS; i++) {
+        int idx = _evsubs[i].next++;
+        assert(idx < MAX_SUBSCRIPTIONS);
+        _evsubs[i].subs[idx] = (subscription_t){.chain = chain, .cb = cb};
+    }
     return PS_SUCCESS;
 }
 
 int
 ps_subscribe_event(chain_id chain, event_t event, ps_callback_f cb)
 {
-    assert(_next_subscription < MAX_SUBSCRIPTIONS);
-    int idx = _next_subscription++;
-    _subscriptions[idx] =
-        (subscription_t){.chain = chain, .event = event, .cb = cb};
+    assert(event > 0 && event < MAX_EVENT_IDS);
+    int idx = _evsubs[event - 1].next++;
+    assert(idx < MAX_SUBSCRIPTIONS);
+    _evsubs[event - 1].subs[idx] = (subscription_t){.chain = chain, .cb = cb};
     return PS_SUCCESS;
 }
 
@@ -83,22 +89,21 @@ ps_publish(token_t token, event_t event, const void *arg, void *ret)
     if (!_initd)
         return PS_NOT_READY;
 
-    for (unsigned int idx = 0, sidx = 0; idx < _next_subscription; idx++) {
+    assert(event > 0 && event < MAX_EVENT_IDS);
+    size_t i = event - 1;
+    for (size_t idx = 0, sidx = 0; idx < _evsubs[i].next; idx++) {
         // if we find a subscription for the chain, we also check if the
-        // subscription index (sidx) matches the token index. The token index
-        // indicates where in the subscriber chain, the publication should
-        // start.
-        subscription_t subs = _subscriptions[idx];
+        // subscription index (sidx) matches the token index. The token
+        // index indicates where in the subscriber chain, the publication
+        // should start.
+        subscription_t subs = _evsubs[i].subs[idx];
         if (subs.chain != timpl.details.chain && subs.chain != ANY_CHAIN)
-            continue;
-        // if the subscription filters a specific event that, drop non-matches
-        if (subs.event && subs.event != event)
             continue;
         if (sidx++ < timpl.details.index)
             continue;
 
-        // we pass the up-to-date token in the callback in case the subscriber
-        // wants to republish to the remainder of this chain.
+        // we pass the up-to-date token in the callback in case the
+        // subscriber wants to republish to the remainder of this chain.
         timpl.details.index++;
 
         assert(subs.cb);

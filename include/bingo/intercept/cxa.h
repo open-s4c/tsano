@@ -7,11 +7,13 @@
 
 #include <bingo/thread_id.h>
 
+#define _EVENT_START 60
 enum cxa_events {
-    EVENT_CXA_GUARD_ACQUIRE = 801,
-    EVENT_CXA_GUARD_RELEASE = 802,
-    EVENT_CXA_GUARD_ABORT   = 803,
+    EVENT_CXA_GUARD_ACQUIRE = 0 + _EVENT_START,
+    EVENT_CXA_GUARD_RELEASE = 1 + _EVENT_START,
+    EVENT_CXA_GUARD_ABORT   = 2 + _EVENT_START,
 };
+#undef _EVENT_START
 
 struct cxa_event {
     const void *pc;
