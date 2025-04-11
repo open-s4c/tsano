@@ -44,7 +44,7 @@ struct tls_item {
 };
 
 static vatomic64_t _thread_count = VATOMIC_INIT(0);
-static thrdata_t *_self_construct(event_t event);
+static thrdata_t *_self_construct(event_id event);
 
 static void _self_destruct(void *);
 static void _tls_init(thrdata_t *td);
@@ -317,7 +317,7 @@ _self_destruct(void *arg)
 }
 
 static thrdata_t *
-_self_construct(event_t event)
+_self_construct(event_id event)
 {
     thrdata_t *td = _thrdata_get();
     if (td != NULL || event != EVENT_THREAD_INIT)
@@ -331,7 +331,7 @@ _self_construct(event_t event)
 // pubsub handler
 // -----------------------------------------------------------------------------
 static void
-_self_handle(token_t token, event_t event, const void *arg, void *ret)
+_self_handle(token_t token, event_id event, const void *arg, void *ret)
 {
     /* The goal here is to wrap the existing event with a seq_value_t that
      * contains also the thread id calculated here when allocating the _key
@@ -356,9 +356,7 @@ _self_handle(token_t token, event_t event, const void *arg, void *ret)
 }
 
 /* Filter all events guarding from reentries */
-#undef BINGO_CTOR
-#define BINGO_CTOR __attribute__((constructor(256)))
-PS_SUBSCRIBE(ANY_CHAIN, {
+PS_SUBSCRIBE(ANY_CHAIN, ANY_EVENT, {
     _self_handle(token, event, arg, ret);
     return false;
 })

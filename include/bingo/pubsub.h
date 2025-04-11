@@ -12,7 +12,7 @@
  * chain (aka topic), handlers are called back in the order of subscription.
  * Each handler has the option of interruping the chain by returning false.
  *
- * Events are identified by a type `event_t` and may contain contain an
+ * Events are identified by a type `event_id` and may contain contain an
  * immutable argument `arg` and a return value `ret`.
  *
  * This pubsub uses the concept of tokens. To publish to a chain, you first have
@@ -34,22 +34,29 @@
 
 #include <bingo/module.h>
 
-/* event_t represents the event type send to a chain. */
-typedef uint32_t event_t;
+/* event_id represents the event type send to a chain. */
+typedef uint32_t event_id;
+
+/* MAX_EVENTS determines the maximum number of event types. */
+#define MAX_EVENTS 512
+
+/* ANY_EVENT indicates any chain. */
+#define ANY_EVENT 0
 
 /* chain_id identifies a subscriber group ordered by the subscription time. */
 typedef uint16_t chain_id;
 
+/* MAX_CHAINS determines the maximum number of chains */
+#define MAX_CHAINS 16
+
 /* ANY_CHAIN indicates any chain. */
-#define ANY_CHAIN ((chain_id) - 1)
+#define ANY_CHAIN 0
 
 /* The standard chains. */
 enum default_chains {
-    INTERCEPT_AT     = 0,
-    INTERCEPT_BEFORE = 1,
-    INTERCEPT_AFTER  = 2,
-
-    _CHAIN_ANY = ANY_CHAIN,
+    INTERCEPT_AT     = 1,
+    INTERCEPT_BEFORE = 2,
+    INTERCEPT_AFTER  = 3,
 };
 
 /* token_t is an object representing the permission to publish to a chain. */
@@ -64,7 +71,7 @@ chain_id chain_from(token_t token);
 /* ps_callback_f is the interface of the handlers subscribing to a chain.
  * If the handler returns false, the chain is interrupted, ie, the event is
  * stopped from being propagated in this chain. */
-typedef bool (*ps_callback_f)(token_t token, event_t event, const void *arg,
+typedef bool (*ps_callback_f)(token_t token, event_id event, const void *arg,
                               void *ret);
 
 /* ps_advertise creates a token for a chain.
@@ -88,27 +95,21 @@ token_t ps_advertise(chain_id chain, bool exclusive);
  *
  * Returns 0 if success, otherwise non-zero.
  */
-int ps_publish(token_t token, event_t event, const void *arg, void *ret);
+int ps_publish(token_t token, event_id event, const void *arg, void *ret);
 
-/* ps_subscribe subscribes (ie, registers) a handler `cb` in a chain.
+/* ps_subscribe subscribes a callback in a chain for an event.
  *
  * The call order of `ps_subscribe` determines the relative order in which the
- * handlers are called with dispatched events.
+ * callbacks are called with published events.
+ *
+ * Note: ps_subscribe should only be called during initialization of the system.
  *
  * Returns 0 if success, otherwise non-zero.
  */
-int ps_subscribe(chain_id chain, ps_callback_f cb);
+int ps_subscribe(chain_id chain, event_id event, ps_callback_f cb);
 
 
-/* ps_subscribe_event subscribes a handler `cb` in a chain for an `event`.
- *
- * The call order of `ps_subscribe_event` is the same as `ps_subscribe`.
- *
- * Returns 0 if success, otherwise non-zero.
- */
-int ps_subscribe_event(chain_id chain, event_t event, ps_callback_f cb);
-
-/* PS_SUBSCRIBE macro creates a handler and subscribes to a chain.
+/* PS_SUBSCRIBE macro creates a callback handler and subscribes to a chain.
  *
  * On load time, a constructor function registers the handler to the chain. The
  * order in which modules are loaded must be considered when planning for the
@@ -116,35 +117,18 @@ int ps_subscribe_event(chain_id chain, event_t event, ps_callback_f cb);
  * compilation units are linked together) or by the order of shared libraries in
  * LD_PRELOAD.
  */
-#define PS_SUBSCRIBE(chain, CALLBACK)                                          \
-    static bool _ps_callback_##chain(token_t token, event_t event,             \
-                                     const void *arg, void *ret)               \
-    {                                                                          \
-        CALLBACK;                                                              \
-        return true;                                                           \
-    }                                                                          \
-    static void BINGO_CTOR _ps_subscribe_##chain(void)                         \
-    {                                                                          \
-        if (ps_subscribe(chain, _ps_callback_##chain) != PS_SUCCESS)           \
-            abort();                                                           \
-    }
-
-/* PS_SUBSCRIBE_EVENT macro subscribes a handler for a specific event.
- *
- * It works similarly to PS_SUBSCRIBE, but the event is also specified.
- */
-#define PS_SUBSCRIBE_EVENT(chain, EVENT, CALLBACK)                             \
-    static bool _ps_callback_##chain##_##EVENT(token_t token, event_t event,   \
+#define PS_SUBSCRIBE(CHAIN, EVENT, CALLBACK)                                   \
+    static bool _ps_callback_##CHAIN##_##EVENT(token_t token, event_id event,  \
                                                const void *arg, void *ret)     \
     {                                                                          \
         CALLBACK;                                                              \
         return true;                                                           \
     }                                                                          \
-    static void BINGO_CTOR _ps_subscribe_##chain##_##EVENT(void)               \
+    static void BINGO_CTOR _ps_subscribe_##CHAIN##_##EVENT(void)               \
     {                                                                          \
-        if (ps_subscribe_event(chain, (EVENT),                                 \
-                               _ps_callback_##chain##_##EVENT) != PS_SUCCESS)  \
-            abort();                                                           \
+        if (ps_subscribe(CHAIN, EVENT, _ps_callback_##CHAIN##_##EVENT) !=      \
+            PS_SUCCESS)                                                        \
+            exit(EXIT_FAILURE);                                                \
     }
 
 /* EVENT_PAYLOAD casts the event argument `arg` to type of the given variable.

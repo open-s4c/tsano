@@ -5,7 +5,7 @@ project(
   VERSION 0.1)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_INTERPROCEDURAL_OPTIMIZATION true)
+# set(CMAKE_INTERPROCEDURAL_OPTIMIZATION true)
 add_compile_options(
   -Werror
   -Wall
@@ -25,8 +25,7 @@ else()
 endif()
 
 find_package(libvsync 4.2 CONFIG REQUIRED)
-add_library(vsync INTERFACE IMPORTED)
-link_libraries(vsync)
+link_libraries(libvsync::vsync)
 
 include(GNUInstallDirs)
 include(CheckSymbolExists)

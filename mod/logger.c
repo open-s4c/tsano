@@ -7,15 +7,10 @@
 #include <bingo/log.h>
 #include <bingo/pubsub.h>
 
-#define ADD_LOGGER(CHAIN)                                                      \
-    PS_SUBSCRIBE(CHAIN, {                                                      \
-        char *chain = #CHAIN;                                                  \
-        log_printf("%s\t%u[%" PRIx64 "]\n", chain, event,                      \
-                   (uint64_t)pthread_self());                                  \
-    })
+PS_SUBSCRIBE(ANY_CHAIN, ANY_EVENT, {
+    log_printf("%" PRIx64 "\t%u[%" PRIx64 "]\n", token._v, event,
+               (uint64_t)pthread_self());
+})
 
-ADD_LOGGER(INTERCEPT_BEFORE)
-ADD_LOGGER(INTERCEPT_AFTER)
-ADD_LOGGER(INTERCEPT_AT)
 
 BINGO_MODULE_INIT()

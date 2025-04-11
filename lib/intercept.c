@@ -23,7 +23,7 @@ BINGO_MODULE_INIT({
 })
 
 static void
-_intercept(chain_id chain, event_t event, const void *arg, void *ret)
+_intercept(chain_id chain, event_id event, const void *arg, void *ret)
 {
     int err = ps_publish(_token[chain], event, arg, ret);
 
@@ -34,19 +34,19 @@ _intercept(chain_id chain, event_t event, const void *arg, void *ret)
 }
 
 void
-intercept_before(event_t event, const void *arg, void *ret)
+intercept_before(event_id event, const void *arg, void *ret)
 {
     _intercept(INTERCEPT_BEFORE, event, arg, ret);
 }
 
 void
-intercept_after(event_t event, const void *arg, void *ret)
+intercept_after(event_id event, const void *arg, void *ret)
 {
     _intercept(INTERCEPT_AFTER, event, arg, ret);
 }
 
 void
-intercept_at(event_t event, const void *arg, void *ret)
+intercept_at(event_id event, const void *arg, void *ret)
 {
     _intercept(INTERCEPT_AT, event, arg, ret);
 }

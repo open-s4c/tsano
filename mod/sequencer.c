@@ -8,7 +8,7 @@
 #include <bingo/self.h>
 #include <bingo/switcher.h>
 
-PS_SUBSCRIBE(INTERCEPT_AT, {
+PS_SUBSCRIBE(INTERCEPT_AT, ANY_EVENT, {
     switch (event) {
         case EVENT_THREAD_FINI:
             switcher_wake(ANY_THREAD, 0);
@@ -23,12 +23,12 @@ PS_SUBSCRIBE(INTERCEPT_AT, {
     return false;
 })
 
-PS_SUBSCRIBE(INTERCEPT_BEFORE, {
+PS_SUBSCRIBE(INTERCEPT_BEFORE, ANY_EVENT, {
     switcher_wake(ANY_THREAD, 0);
     return false;
 })
 
-PS_SUBSCRIBE(INTERCEPT_AFTER, {
+PS_SUBSCRIBE(INTERCEPT_AFTER, ANY_EVENT, {
     switcher_yield(self_id(), true);
     return false;
 })
