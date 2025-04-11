@@ -5,7 +5,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define BINGO_XTOR_PRIO 201
 #include <bingo/intercept.h>
+#include <bingo/module.h>
 #include <bingo/pubsub.h>
 
 static token_t _token[] = {

@@ -5,6 +5,8 @@
 #include <assert.h>
 #include <stdio.h>
 
+#define BINGO_XTOR_PRIO 202
+#include <bingo/module.h>
 #include <bingo/pubsub.h>
 
 typedef union {

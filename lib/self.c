@@ -21,6 +21,8 @@
 #include <string.h>
 
 #include "rbtree.h"
+
+#define BINGO_XTOR_PRIO 204
 #include <bingo/intercept.h>
 #include <bingo/log.h>
 #include <bingo/mempool.h>
@@ -29,7 +31,7 @@
 #include <vsync/atomic.h>
 
 // #define USE_THRMAP
-//  #define USE_IDMAP
+#define USE_IDMAP
 
 typedef struct thread_data {
     int guard;

@@ -5,7 +5,7 @@ project(
   VERSION 0.1)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-# set(CMAKE_INTERPROCEDURAL_OPTIMIZATION true)
+
 add_compile_options(
   -Werror
   -Wall

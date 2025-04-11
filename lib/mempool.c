@@ -8,10 +8,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define BINGO_XTOR_PRIO 200
 #include <bingo/mempool.h>
 #include <bingo/module.h>
 #include <vsync/spinlock/caslock.h>
-#define ASSERT assert
 
 const size_t mempool_size = 1024 * 1024 * 200;
 static size_t _sizes[]    = {32,
@@ -31,7 +31,7 @@ _bucketize(size_t size)
     unsigned int i = 0;
     for (; i < NSTACKS && size > _sizes[i]; i++)
         ;
-    ASSERT(i < NSTACKS);
+    assert(i < NSTACKS);
     return i;
 }
 
@@ -85,7 +85,7 @@ mempool_alloc(size_t n)
     unsigned bucket = _bucketize(size);
     size            = _sizes[bucket];
     entry_t **stack = &mp->stack[bucket];
-    ASSERT(stack);
+    assert(stack);
 
     // Mempool is used from rogue thread, serialization is necessary
     caslock_acquire(&mp->lock);
@@ -125,7 +125,7 @@ void
 mempool_free(void *ptr)
 {
     mempool_t *mp = &_mp;
-    ASSERT(ptr);
+    assert(ptr);
     entry_t *e      = (entry_t *)ptr - 1;
     size_t size     = e->size + sizeof(entry_t);
     unsigned bucket = _bucketize(size);
@@ -135,7 +135,7 @@ mempool_free(void *ptr)
     // Mempool is used from rogue thread, serialization is necessary
     caslock_acquire(&mp->lock);
     mp->allocated -= size;
-    ASSERT(stack);
+    assert(stack);
     e->next = *stack;
     *stack  = e;
     caslock_release(&mp->lock);

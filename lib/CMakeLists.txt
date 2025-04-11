@@ -43,6 +43,11 @@ set(MODS
 
 add_library(bingo.a STATIC ${SRCS} ${MODS})
 target_compile_options(bingo.a PRIVATE -fPIC)
-target_link_libraries(bingo.a PUBLIC pthread bingo.h)
+target_link_libraries(bingo.a PUBLIC bingo.h)
 set_target_properties(bingo.a PROPERTIES SUFFIX "")
 install(TARGETS bingo.a DESTINATION lib)
+
+add_library(bingon SHARED ${SRCS} ${MODS})
+target_link_libraries(bingon PUBLIC bingo.h pthread)
+set_property(TARGET bingon PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+install(TARGETS bingon DESTINATION lib)
