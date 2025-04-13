@@ -22,9 +22,7 @@ add_interceptor abort
 add_interceptor atexit
 add_interceptor exit
 add_interceptor fread
-add_interceptor free
 add_interceptor fwrite
-add_interceptor malloc
 add_interceptor printf
 add_interceptor puts
 add_interceptor rand
