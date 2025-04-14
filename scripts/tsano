@@ -21,23 +21,23 @@ fi
 # symlink tsano to possible tsan libraries
 (
     cd "$TSANO_DIR"
-    if [ ! -f libtsan.$(SO).0 ]; then
-        ln -s $(readlink -f libtsano.$(SO)) libtsan.$(SO).0
+    if [ ! -f libtsan.$SO.0 ]; then
+        ln -s $(readlink -f libtsano.$SO) libtsan.$SO.0
     fi
-    if [ ! -f libtsan.$(SO).1 ]; then
-        ln -s $(readlink -f libtsano.$(SO)) libtsan.$(SO).1
+    if [ ! -f libtsan.$SO.1 ]; then
+        ln -s $(readlink -f libtsano.$SO) libtsan.$SO.1
     fi
-    if [ ! -f libtsan.$(SO).2 ]; then
-        ln -s $(readlink -f libtsano.$(SO)) libtsan.$(SO).2
+    if [ ! -f libtsan.$SO.2 ]; then
+        ln -s $(readlink -f libtsano.$SO) libtsan.$SO.2
     fi
-    if [ $(SO) = "dylib" ]; then
+    if [ $SO = "dylib" ]; then
         if [ ! -f libclang_rt.tsan_osx_dynamic.dylib ]; then
-            ln -s $(readlink -f libtsano.$(SO)) \
+            ln -s $(readlink -f libtsano.$SO) \
                 libclang_rt.tsan_osx_dynamic.dylib
         fi
     fi
-    if [ ! -f libclang_rt.tsan-x86_64.$(SO) ]; then
-        ln -s $(readlink -f libtsano.$(SO)) libclang_rt.tsan-x86_64.$(SO)
+    if [ ! -f libclang_rt.tsan-x86_64.$SO ]; then
+        ln -s $(readlink -f libtsano.$SO) libclang_rt.tsan-x86_64.$SO
     fi
 )
 
