@@ -149,6 +149,6 @@ _exec-mode:
 	@echo done
 
 _exec-verbose:
-	@(cd $(_DIR) && $(_CMD)) 2>&1 | tee $(_LOG)
+	(cd $(_DIR) && $(_CMD)) 2>&1 | tee $(_LOG)
 _exec-quiet:
 	@(cd $(_DIR) && $(_CMD)) > $(_LOG) 2>&1 || (cat $(_LOG) && false)

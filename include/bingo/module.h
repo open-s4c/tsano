@@ -31,6 +31,5 @@
         if (1) {                                                               \
             CODE                                                               \
         }                                                                      \
-        log_printf("UNLOADED %s\n", __FILE__);                                 \
     }
 #endif /* BINGO_MODULE_H */
