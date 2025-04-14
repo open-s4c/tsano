@@ -27,7 +27,7 @@ SHA=		068d5ee1a3ac40dabd00d211d5013af44be55bea
 TARGET+=	clone
 DIR.clone=	leveldb
 PRE.clone=	git clone --recurse-submodules $(URL) .
-RUN.clone=	git checkout $(SHA)
+RUN.clone=	git checkout $(SHA) && git submodule update --init --recursive
 
 TARGET+=	patch
 DEP.patch=	.clone.run
@@ -35,7 +35,7 @@ DIR.patch=	leveldb
 RUN.patch=	git checkout . && git apply $(ROOT)/patches/01-leveldb
 
 TARGET+=	lib
-CFG.lib=	cmake -S$(ROOT)/.. -DCMAKE_BUILD_TYPE=Release
+CFG.lib=	cmake -S$(ROOT)/.. -B. -DCMAKE_BUILD_TYPE=Release
 BLD.lib=	$(MAKE) -C lib && $(MAKE) -C mod
 
 # ------------------------------------------------------------------------------
@@ -58,24 +58,21 @@ CFG.tsan= 	$(CONFIGURE) -DCMAKE_CXX_FLAGS=-fsanitize=thread
 BLD.tsan=	$(BUILD)
 RUN.tsan=	env TSAN_OPTIONS=report_bugs=0 $(RUNCMD)
 PRO.tsan=	$(PARSE)
+# Linux: if TSAN fails with "FATAL: ThreadSanitizer: unexpected memory mapping"
+# Try running this
+#	sudo sysctl vm.mmap_rnd_bits=30
 
 TARGET+=	tsano
 DEP.tsano=	.tsan.bld
 DIR.tsano=	$(DIR.tsan)
-RUN.tsano=	tsano $(RUNCMD)
+RUN.tsano=	$(ROOT)/../scripts/tsano $(RUNCMD)
 PRO.tsano=	$(PARSE)
 
 TARGET+=	bingo
 DEP.bingo=	.tsan.bld
 DIR.bingo=	$(DIR.tsan)
-RUN.bingo=	bingo -pthread -mutex -tsan $(RUNCMD)
+RUN.bingo=	$(ROOT)/../scripts/bingo $(RUNCMD)
 PRO.bingo=	$(PARSE)
-
-TARGET+=	bingo-bund
-DEP.bingo-bund=	.tsan.bld
-DIR.bingo-bund=	$(DIR.tsan)
-RUN.bingo-bund=	bingo -bundle $(RUNCMD)
-PRO.bingo-bund=	$(PARSE)
 
 # ------------------------------------------------------------------------------
 include bench.mk
