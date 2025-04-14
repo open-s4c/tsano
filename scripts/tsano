@@ -1,0 +1,50 @@
+#!/bin/sh
+
+SO=so
+
+if [ "$(uname)" = "Darwin" ]; then
+    SO=dylib
+    DYLD=yes
+fi
+
+# if not installed, fall back to repo/build prefix
+BINGO_PREFIX="@CMAKE_INSTALL_PREFIX@"
+if [ ! -d "$BINGO_PREFIX" ]; then
+    BINGO_PREFIX=$(readlink -f $(dirname $(readlink -f $0))/../build)
+    TSANO_DIR=$BINGO_PREFIX/tsano
+else
+    TSANO_DIR=$BINGO_PREFIX/lib/bingo
+fi
+
+#echo "TSANO: $TSANO_DIR"
+
+# symlink tsano to possible tsan libraries
+(
+    cd "$TSANO_DIR"
+    if [ ! -f libtsan.$(SO).0 ]; then
+        ln -s $(readlink -f libtsano.$(SO)) libtsan.$(SO).0
+    fi
+    if [ ! -f libtsan.$(SO).1 ]; then
+        ln -s $(readlink -f libtsano.$(SO)) libtsan.$(SO).1
+    fi
+    if [ ! -f libtsan.$(SO).2 ]; then
+        ln -s $(readlink -f libtsano.$(SO)) libtsan.$(SO).2
+    fi
+    if [ $(SO) = "dylib" ]; then
+        if [ ! -f libclang_rt.tsan_osx_dynamic.dylib ]; then
+            ln -s $(readlink -f libtsano.$(SO)) \
+                libclang_rt.tsan_osx_dynamic.dylib
+        fi
+    fi
+    if [ ! -f libclang_rt.tsan-x86_64.$(SO) ]; then
+        ln -s $(readlink -f libtsano.$(SO)) libclang_rt.tsan-x86_64.$(SO)
+    fi
+)
+
+# prepare LD_LIBRARY_PATH
+LDPATH="$TSANO_DIR"
+if [ -z "$LD_LIBRARY_PATH" ]; then
+    LDPATH="$TSANO_DIR:$LD_LIBRARY_PATH"
+fi
+
+exec env LD_LIBRARY_PATH=$LDPATH $@

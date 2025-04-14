@@ -1,0 +1,33 @@
+#!/bin/sh
+
+SO=so
+if [ "$(uname)" = "Darwin" ]; then
+    SO=dylib
+    DYLD=yes
+fi
+
+# if not installed, fall back to repo/build prefix
+BINGO_PREFIX="@CMAKE_INSTALL_PREFIX@"
+if [ ! -d "$BINGO_PREFIX" ]; then
+    BINGO_PREFIX=$(readlink -f $(dirname $(readlink -f $0))/../build)
+    MOD_DIR=$BINGO_PREFIX/mod
+else
+    MOD_DIR=$BINGO_PREFIX/lib/bingo
+fi
+#echo "BINGO: $BINGO_PREFIX"
+
+PRELOAD="$BINGO_PREFIX/lib/libbingo.$SO"
+args=""
+while [ "$#" != "0" ]; do
+    case "$1" in
+        -autocept)
+            PRELOAD="$PRELOAD:$MOD_DIR/autocept.$SO"
+        ;;
+        *)
+            args="${args} $1"
+        ;;
+    esac
+    shift
+done
+
+exec tsano env LD_PRELOAD=$PRELOAD $args
