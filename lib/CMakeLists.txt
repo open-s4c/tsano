@@ -2,10 +2,10 @@
 # SPDX-License-Identifier: MIT
 
 add_executable(rbtree_test rbtree_test.c rbtree.c)
+add_test(rbtree_test rbtree_test)
 
 set(SRCS
     # Stateless components
-    uset.c
     idmap.c
     rbtree.c
     # Stateful components
