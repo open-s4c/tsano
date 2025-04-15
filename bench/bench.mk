@@ -12,7 +12,7 @@
 # PERFORMANCE OF THIS SOFTWARE.
 # ------------------------------------------------------------------------------
 # bench.mk - a terrible benchmark framework for stuborn developers
-#   version: 0.1.2
+#   version: 0.1.3
 #   license: 0BSD
 #
 # Actions:
@@ -42,6 +42,7 @@
 # This file is compatible with BSD Make and GNU Make
 .POSIX:
 .SUFFIXES:
+.SECONDARY:
 
 # General configuration
 WORKDIR=	work

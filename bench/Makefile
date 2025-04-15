@@ -26,13 +26,14 @@ SHA=		068d5ee1a3ac40dabd00d211d5013af44be55bea
 
 TARGET+=	clone
 DIR.clone=	leveldb
-PRE.clone=	git clone --recurse-submodules $(URL) .
-RUN.clone=	git checkout $(SHA) && git submodule update --init --recursive
+CFG.clone=	git clone --recurse-submodules $(URL) .
+BLD.clone=	git checkout $(SHA) && git submodule update --init --recursive
 
 TARGET+=	patch
-DEP.patch=	.clone.run
+DEP.patch=	.clone.bld
 DIR.patch=	leveldb
-RUN.patch=	git checkout . && git apply $(ROOT)/patches/01-leveldb
+CFG.patch=	git checkout .
+BLD.patch=	git apply $(ROOT)/patches/01-leveldb
 
 TARGET+=	lib
 CFG.lib=	cmake -S$(ROOT)/.. -B. -DCMAKE_BUILD_TYPE=Release
@@ -43,7 +44,7 @@ BLD.lib=	$(MAKE) -C lib && $(MAKE) -C mod
 # ------------------------------------------------------------------------------
 
 TARGET+=	baseline
-DEP.baseline=	.lib.bld .patch.run
+DEP.baseline=	.lib.bld .patch.bld
 DIR.baseline=	build/leveldb
 CFG.baseline= 	$(CONFIGURE)
 BLD.baseline=	$(BUILD)
