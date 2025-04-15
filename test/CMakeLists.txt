@@ -1,3 +1,6 @@
+# Copyright (C) Huawei Technologies Co., Ltd. 2025. All rights reserved.
+# SPDX-License-Identifier: MIT
+
 add_compile_options(-DVATOMIC_BUILTINS)
 set(TSAN_mp on)
 set(TSAN_simple-tsan on)

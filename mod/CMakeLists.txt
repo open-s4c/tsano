@@ -1,3 +1,6 @@
+# Copyright (C) Huawei Technologies Co., Ltd. 2025. All rights reserved.
+# SPDX-License-Identifier: MIT
+
 add_custom_target(
   tsan.c COMMAND env tmplr ${CMAKE_CURRENT_SOURCE_DIR}/tsan.c.in >
                  ${CMAKE_CURRENT_SOURCE_DIR}/tsan.c)
