@@ -4,5 +4,14 @@
 configure_file(tsano tsano)
 configure_file(bingo bingo)
 
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/tsano
-              ${CMAKE_CURRENT_BINARY_DIR}/bingo DESTINATION bin)
+install(
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/tsano ${CMAKE_CURRENT_BINARY_DIR}/bingo
+  DESTINATION bin
+  PERMISSIONS
+    OWNER_READ
+    OWNER_WRITE
+    OWNER_EXECUTE
+    GROUP_READ
+    GROUP_EXECUTE
+    WORLD_READ
+    WORLD_EXECUTE)
