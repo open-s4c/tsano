@@ -2,18 +2,19 @@
  * Copyright (C) Huawei Technologies Co., Ltd. 2025. All rights reserved.
  * SPDX-License-Identifier: MIT
  */
-#include <assert.h>
-#include <stdbool.h>
-#include <string.h>
-
 #include "idmap.h"
+
+#include <assert.h>
+#include <bingo/compiler.h>
 #include <bingo/log.h>
 #include <bingo/mempool.h>
+#include <stdbool.h>
+#include <string.h>
 
 #define IDMAP_INIT_SIZE 4
 #define ASSERT          assert
 
-void
+BINGO_HIDE void
 idmap_init_cap(idmap_t *idmap, size_t cap)
 {
     ASSERT(idmap);
@@ -24,13 +25,13 @@ idmap_init_cap(idmap_t *idmap, size_t cap)
     };
 }
 
-void
+BINGO_HIDE void
 idmap_init(idmap_t *idmap)
 {
     idmap_init_cap(idmap, IDMAP_INIT_SIZE);
 }
 
-void
+BINGO_HIDE void
 idmap_fini(idmap_t *idmap)
 {
     ASSERT(idmap);
@@ -39,7 +40,7 @@ idmap_fini(idmap_t *idmap)
     memset(idmap, 0, sizeof(idmap_t));
 }
 
-size_t
+BINGO_HIDE size_t
 idmap_size(idmap_t *idmap)
 {
     return idmap->size;
@@ -61,7 +62,7 @@ _idmap_find(idmap_t *idmap, uint64_t id, size_t *empty)
     return idmap->size;
 }
 
-size_t
+BINGO_HIDE size_t
 idmap_find(idmap_t *idmap, uint64_t id)
 {
     size_t empty;
@@ -69,7 +70,7 @@ idmap_find(idmap_t *idmap, uint64_t id)
 }
 
 
-size_t
+BINGO_HIDE size_t
 idmap_insert(idmap_t *idmap, uint64_t id)
 {
     size_t next;
@@ -86,7 +87,7 @@ idmap_insert(idmap_t *idmap, uint64_t id)
     return idmap->size++;
 }
 
-size_t
+BINGO_HIDE size_t
 idmap_remove(idmap_t *idmap, uint64_t id)
 {
     size_t idx = idmap_find(idmap, id);

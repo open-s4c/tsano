@@ -35,19 +35,19 @@ _intercept(chain_id chain, event_id event, const void *arg, void *ret)
     }
 }
 
-void
+BINGO_HIDE void
 intercept_before(event_id event, const void *arg, void *ret)
 {
     _intercept(INTERCEPT_BEFORE, event, arg, ret);
 }
 
-void
+BINGO_HIDE void
 intercept_after(event_id event, const void *arg, void *ret)
 {
     _intercept(INTERCEPT_AFTER, event, arg, ret);
 }
 
-void
+BINGO_HIDE void
 intercept_at(event_id event, const void *arg, void *ret)
 {
     _intercept(INTERCEPT_AT, event, arg, ret);

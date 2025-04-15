@@ -42,7 +42,7 @@ struct chain {
 static bool _initd;
 static struct chain _chains[MAX_CHAINS];
 
-chain_id
+BINGO_HIDE chain_id
 chain_from(token_t token)
 {
     timpl_t timpl;
@@ -50,7 +50,7 @@ chain_from(token_t token)
     return timpl.details.chain;
 }
 
-token_t
+BINGO_HIDE token_t
 ps_advertise(chain_id chain, bool exclusive)
 {
     timpl_t timpl = {
@@ -104,7 +104,7 @@ _ps_subscribe_chain(chain_id chain, event_id event, ps_callback_f cb)
     return PS_SUCCESS;
 }
 
-int
+BINGO_HIDE int
 ps_subscribe(chain_id chain, event_id event, ps_callback_f cb)
 {
     assert(cb != NULL);
@@ -119,7 +119,7 @@ ps_subscribe(chain_id chain, event_id event, ps_callback_f cb)
     return PS_SUCCESS;
 }
 
-int
+BINGO_WEAK BINGO_HIDE int
 ps_publish(token_t token, event_id event, const void *arg, void *ret)
 {
     timpl_t timpl;
@@ -133,7 +133,6 @@ ps_publish(token_t token, event_id event, const void *arg, void *ret)
         return PS_INVALID;
     if (event == ANY_EVENT || event >= MAX_EVENTS)
         return PS_INVALID;
-
     size_t chain_idx = chain - 1;
     size_t event_idx = event - 1;
     struct event *ev = &_chains[chain_idx].events[event_idx];

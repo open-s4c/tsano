@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MIT
 
 add_executable(rbtree_test rbtree_test.c rbtree.c)
+target_link_libraries(rbtree_test PUBLIC bingo.h)
 add_test(rbtree_test rbtree_test)
 
 set(SRCS
@@ -44,6 +45,7 @@ set(MODS
     ../mod/stacktrace.c)
 
 add_library(bingo.a STATIC ${SRCS} ${MODS})
+target_compile_options(bingo.a PUBLIC -DBINGO_LTO)
 target_link_libraries(bingo.a PUBLIC bingo.h)
 set_property(TARGET bingo.a PROPERTY SUFFIX "")
 install(TARGETS bingo.a DESTINATION lib/bingo)

@@ -15,14 +15,15 @@
  *
  * This should be the first module subscribing to all events from pubsub.
  */
+
 #include <assert.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <string.h>
 
+#define BINGO_XTOR_PRIO 204
 #include "rbtree.h"
 
-#define BINGO_XTOR_PRIO 204
 #include <bingo/intercept.h>
 #include <bingo/log.h>
 #include <bingo/mempool.h>
@@ -31,7 +32,7 @@
 #include <vsync/atomic.h>
 
 // #define USE_THRMAP
-#define USE_IDMAP
+// #define USE_IDMAP
 
 typedef struct thread_data {
     int guard;
@@ -54,7 +55,7 @@ static void _tls_init(thrdata_t *td);
 // -----------------------------------------------------------------------------
 // tls items
 // -----------------------------------------------------------------------------
-int
+static int
 _tls_cmp(const struct rbnode *a, const struct rbnode *b)
 {
     const struct tls_item *ea = container_of(a, struct tls_item, node);
@@ -80,6 +81,7 @@ _tls_fini(thrdata_t *td)
 // -----------------------------------------------------------------------------
 #ifdef USE_IDMAP
     #include "idmap.h"
+
     #include <vsync/spinlock/seqlock.h>
     #define MAX_THREADS 4096
 
@@ -263,14 +265,14 @@ _thrdata_del(thrdata_t *td)
 // -----------------------------------------------------------------------------
 // public interface
 // -----------------------------------------------------------------------------
-thread_id
+BINGO_HIDE thread_id
 self_id()
 {
     thrdata_t *td = _thrdata_get();
     return td ? td->tid : NO_THREAD;
 }
 
-void *
+BINGO_HIDE void *
 self_tls(const void *global, size_t size)
 {
     uintptr_t item_key = (uintptr_t)global;
@@ -332,8 +334,8 @@ _self_construct(event_id event)
 // -----------------------------------------------------------------------------
 // pubsub handler
 // -----------------------------------------------------------------------------
-static void
-_self_handle(token_t token, event_id event, const void *arg, void *ret)
+BINGO_HIDE void
+self_handle(token_t token, event_id event, const void *arg, void *ret)
 {
     /* The goal here is to wrap the existing event with a seq_value_t that
      * contains also the thread id calculated here when allocating the _key
@@ -359,7 +361,7 @@ _self_handle(token_t token, event_id event, const void *arg, void *ret)
 
 /* Filter all events guarding from reentries */
 PS_SUBSCRIBE(ANY_CHAIN, ANY_EVENT, {
-    _self_handle(token, event, arg, ret);
+    self_handle(token, event, arg, ret);
     return false;
 })
 

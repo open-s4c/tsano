@@ -6,15 +6,7 @@
 #define BINGO_MODULE_H
 
 #include <bingo/log.h>
-
-#ifndef BINGO_XTOR_PRIO
-    #define BINGO_XTOR_PRIO
-#endif
-
-#define BINGO_CTOR  __attribute__((constructor(BINGO_XTOR_PRIO)))
-#define BINGO_DTOR  __attribute__((destructor(BINGO_XTOR_PRIO)))
-#define BINGO_WEAK  __attribute__((weak))
-#define BINGO_NORET _Noreturn
+#include <bingo/compiler.h>
 
 #define BINGO_MODULE_INIT(CODE)                                                \
     static BINGO_CTOR void _module_init()                                      \

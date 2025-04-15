@@ -25,7 +25,7 @@ static size_t _sizes[]    = {32,
                              8 * 1024 * 1024};
 #define NSTACKS (sizeof(_sizes) / sizeof(size_t))
 
-unsigned int
+static unsigned int
 _bucketize(size_t size)
 {
     unsigned int i = 0;
@@ -76,7 +76,7 @@ _mempool_fini()
         free(_mp.pool.memory);
 }
 
-void *
+BINGO_HIDE void *
 mempool_alloc(size_t n)
 {
     mempool_t *mp   = &_mp;
@@ -108,7 +108,7 @@ mempool_alloc(size_t n)
     return e ? e->data : NULL;
 }
 
-void *
+BINGO_HIDE void *
 mempool_realloc(void *ptr, size_t size)
 {
     void *p = mempool_alloc(size);
@@ -121,7 +121,7 @@ mempool_realloc(void *ptr, size_t size)
     return p;
 }
 
-void
+BINGO_HIDE void
 mempool_free(void *ptr)
 {
     mempool_t *mp = &_mp;
