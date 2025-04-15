@@ -6,7 +6,7 @@
 #define BINGO_STACKTRACE_H
 #include <stdint.h>
 
-#define _EVENT_START 90
+#define _EVENT_START 40
 enum stacktrace_events {
     EVENT_STACKTRACE_ENTER = 0 + _EVENT_START,
     EVENT_STACKTRACE_EXIT  = 1 + _EVENT_START,
