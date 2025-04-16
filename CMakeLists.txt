@@ -16,6 +16,7 @@ add_compile_options(
   -Wno-unused-parameter
   -Wno-unused-variable
   -Wno-missing-field-initializers
+  -Wno-unused-command-line-argument
   $<$<COMPILE_LANGUAGE:C>:-Wno-override-init>)
 
 if(CMAKE_SYSTEM_NAME MATCHES "NetBSD")
