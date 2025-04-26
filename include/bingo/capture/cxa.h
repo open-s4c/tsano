@@ -5,7 +5,7 @@
 #ifndef BINGO_CXA_H
 #define BINGO_CXA_H
 
-#include <bingo/thread_id.h>
+#include <bingo/capture.h>
 
 #define _EVENT_START 60
 enum cxa_events {

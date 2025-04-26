@@ -13,10 +13,16 @@
 #define BINGO_WEAK  __attribute__((weak))
 #define BINGO_NORET _Noreturn
 
-#ifdef BINGO_LTO
-    #define BINGO_HIDE  __attribute__((visibility("hidden")))
-#else
-    #define BINGO_HIDE
+#ifndef BINGO_HIDE
+    #define BINGO_HIDE __attribute__((visibility("hidden")))
+#endif
+
+#ifndef likely
+    #define likely(x) __builtin_expect(!!(x), 1)
+#endif
+
+#ifndef unlikely
+    #define unlikely(x) __builtin_expect(!!(x), 0)
 #endif
 
 #endif /* BINGO_COMPILER_H */

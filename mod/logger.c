@@ -4,13 +4,16 @@
  */
 #include <pthread.h>
 
+#include <bingo/capture.h>
 #include <bingo/log.h>
-#include <bingo/pubsub.h>
+#include <bingo/module.h>
 
-PS_SUBSCRIBE(ANY_CHAIN, ANY_EVENT, {
-    log_printf("%" PRIx64 "\t%u[%" PRIx64 "]\n", token._v, event,
-               (uint64_t)pthread_self());
-})
+REGISTER_CALLBACK(
+    ANY_CHAIN, ANY_EVENT,
+    {
+        // log_printf("%" PRIx64 "\t%u[%" PRIx64 "]\n", token._v, event,
+        //         (uint64_t)pthread_self());
+    })
 
 
 BINGO_MODULE_INIT()

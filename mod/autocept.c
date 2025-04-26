@@ -8,7 +8,7 @@
 
 #include "autocept.h"
 #include "defs.h"
-#include <bingo/intercept.h>
+#include <bingo/capture.h>
 #include <bingo/module.h>
 
 BINGO_MODULE_INIT()
@@ -19,7 +19,7 @@ void *
 autocept_before(const char *name)
 {
     autocept_event_t ev = {.fname = name};
-    intercept_before(EVENT_AUTOCEPT, &ev, 0);
+    (void)capture_before(EVENT_AUTOCEPT, &ev);
 #if defined(__APPLE__)
     return 0;
 #else
@@ -30,5 +30,5 @@ autocept_before(const char *name)
 void
 autocept_after(void)
 {
-    intercept_after(EVENT_AUTOCEPT, 0, 0);
+    capture_after(EVENT_AUTOCEPT, 0);
 }

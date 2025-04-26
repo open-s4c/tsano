@@ -7,7 +7,7 @@
 
 #include <pthread.h>
 
-#include <bingo/thread_id.h>
+#include <bingo/capture.h>
 
 #define _EVENT_START 10
 enum pthread_events {

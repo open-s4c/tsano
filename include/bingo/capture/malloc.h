@@ -4,7 +4,8 @@
  */
 #ifndef BINGO_MALLOC_H
 #define BINGO_MALLOC_H
-#include <stddef.h>
+
+#include <bingo/capture.h>
 
 #define _EVENT_START 50
 enum malloc_events {

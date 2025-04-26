@@ -4,7 +4,8 @@
  */
 #ifndef BINGO_STACKTRACE_H
 #define BINGO_STACKTRACE_H
-#include <stdint.h>
+
+#include <bingo/capture.h>
 
 #define _EVENT_START 40
 enum stacktrace_events {

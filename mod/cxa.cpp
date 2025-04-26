@@ -4,10 +4,8 @@
  */
 
 extern "C" {
-#include <bingo/intercept.h>
-#include <bingo/intercept/cxa.h>
+#include <bingo/capture/cxa.h>
 #include <bingo/interpose.h>
-#include <bingo/pubsub.h>
 
 int __cxa_guard_acquire(void *addr);
 int __cxa_guard_release(void *addr);
@@ -17,27 +15,27 @@ void __cxa_guard_abort(void *addr);
 INTERPOSE(int, __cxa_guard_acquire, void *addr)
 {
     struct cxa_event ev = {.pc = INTERPOSE_PC, .addr = addr};
-    intercept_before(EVENT_CXA_GUARD_ACQUIRE, &ev, 0);
+    capture_before(EVENT_CXA_GUARD_ACQUIRE, &ev);
     ev.ret = REAL(__cxa_guard_acquire, addr);
-    intercept_after(EVENT_CXA_GUARD_ACQUIRE, &ev, 0);
+    capture_after(EVENT_CXA_GUARD_ACQUIRE, &ev);
     return ev.ret;
 }
 
 INTERPOSE(int, __cxa_guard_release, void *addr)
 {
     struct cxa_event ev = {.pc = INTERPOSE_PC, .addr = addr};
-    intercept_before(EVENT_CXA_GUARD_RELEASE, &ev, 0);
+    capture_before(EVENT_CXA_GUARD_RELEASE, &ev);
     ev.ret = REAL(__cxa_guard_release, addr);
-    intercept_after(EVENT_CXA_GUARD_RELEASE, &ev, 0);
+    capture_after(EVENT_CXA_GUARD_RELEASE, &ev);
     return ev.ret;
 }
 
 INTERPOSE(void, __cxa_guard_abort, void *addr)
 {
     struct cxa_event ev = {.pc = INTERPOSE_PC, .addr = addr};
-    intercept_before(EVENT_CXA_GUARD_ABORT, &ev, 0);
+    capture_before(EVENT_CXA_GUARD_ABORT, &ev);
     REAL(__cxa_guard_abort, addr);
-    intercept_before(EVENT_CXA_GUARD_ABORT, &ev, 0);
+    capture_after(EVENT_CXA_GUARD_ABORT, &ev);
 }
 
 BINGO_MODULE_INIT()

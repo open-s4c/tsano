@@ -1,10 +1,29 @@
 /*
  * Copyright (C) Huawei Technologies Co., Ltd. 2023-2025. All rights reserved.
  * SPDX-License-Identifier: MIT
+ * -----------------------------------------------------------------------------
+ * @file interpose.h
+ * @brief Interposition helper macros
+ *
+ * The macro `INTERPOSE` can be used to create interceptors for arbitrary
+ * functions from dynamic libraries. For example, the function malloc can be
+ * interposed like this:
+ *
+ *     INTERPOSE(void *, malloc, size_t n)
+ *     {
+ *         // do something before the real call
+ *         void *ptr = REAL(malloc, n);
+ *         // do somethine after the real call
+ *         return ptr;
+ *     }
+ *
+ * This header used in several modules in `mod/` in combination with the
+ * publishing functions provided by `capture.h`.
+ *
+ * See `mod/malloc.c` for a detailed example.
  */
 #ifndef BINGO_INTERPOSE_H
 #define BINGO_INTERPOSE_H
-
 #include <dlfcn.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -19,7 +38,7 @@
               (REAL_NAME(F) = (__typeof(REAL_NAME(F)))dlsym(RTLD_NEXT, #F)) :  \
               0),                                                              \
          REAL_NAME(F)(__VA_ARGS__))
-    #define REAL_NAME(F) __bingo_real_##F
+    #define REAL_NAME(F) _bingo_real_##F
 
     #define INTERPOSE(T, F, ...)                                               \
         T F(__VA_ARGS__);                                                      \
@@ -29,7 +48,7 @@
 #elif defined(__APPLE__)
 
     #define REAL(F, ...) F(__VA_ARGS__)
-    #define FAKE_NAME(F) __bingo_fake_##F
+    #define FAKE_NAME(F) _bingo_fake_##F
 
     #define INTERPOSE(T, F, ...)                                               \
         T FAKE_NAME(F)(__VA_ARGS__);                                           \
@@ -43,9 +62,6 @@
 #else
     #error Unsupported platform
 #endif
-
-
-#define INTERPOSE_PC __builtin_extract_return_addr(__builtin_return_address(0))
 
 
 #endif /* BINGO_INTERPOSE_H */

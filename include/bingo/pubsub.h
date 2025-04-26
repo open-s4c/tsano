@@ -1,10 +1,7 @@
 /*
  * Copyright (C) Huawei Technologies Co., Ltd. 2023-2025. All rights reserved.
  * SPDX-License-Identifier: MIT
- */
-#ifndef BINGO_PUBSUB_H
-#define BINGO_PUBSUB_H
-/*******************************************************************************
+ * -----------------------------------------------------------------------------
  * @file pubsub.h
  * @brief Interruptable chain-based pubsub
  *
@@ -26,16 +23,14 @@
  * chain-of-responsibility pattern. However, it violates some requirements of
  * each aspect such that no name seem to perfectly match it.
  *
- ******************************************************************************/
-#include <assert.h>
+ */
+#ifndef BINGO_PUBSUB_H
+#define BINGO_PUBSUB_H
 #include <stdbool.h>
 #include <stdint.h>
-#include <stdlib.h>
-
-#include <bingo/module.h>
 
 /* event_id represents the event type send to a chain. */
-typedef uint32_t event_id;
+typedef uint16_t event_id;
 
 /* MAX_EVENTS determines the maximum number of event types. */
 #define MAX_EVENTS 512
@@ -52,38 +47,41 @@ typedef uint16_t chain_id;
 /* ANY_CHAIN indicates any chain. */
 #define ANY_CHAIN 0
 
-/* The standard chains. */
-enum default_chains {
-    INTERCEPT_AT     = 1,
-    INTERCEPT_BEFORE = 2,
-    INTERCEPT_AFTER  = 3,
-};
+/* CHAIN_NULL is a special chain that never has subscribers. */
+#define CHAIN_NULL 0
+
+typedef struct self self_t;
 
 /* token_t is an object representing the permission to publish to a chain. */
 typedef struct token {
-    uint64_t _v;
+    const chain_id chain;
+    const event_id event;
+    uint32_t index;
 } token_t;
 
-/* chain_from extracts the chain_id from a token. */
-chain_id chain_from(token_t token);
+/* Initializes a token */
+static inline token_t
+make_token(chain_id chain, event_id event)
+{
+    return (token_t){
+        .chain = chain,
+        .event = event,
+        .index = 0,
+    };
+}
 
+/* Context/self opaque metadata */
+typedef struct self self_t;
 
 /* ps_callback_f is the interface of the handlers subscribing to a chain.
  * If the handler returns false, the chain is interrupted, ie, the event is
  * stopped from being propagated in this chain. */
-typedef bool (*ps_callback_f)(token_t token, event_id event, const void *arg,
-                              void *ret);
-
-/* ps_advertise creates a token for a chain.
- *
- * The token can have exclusive publishing rights if `exclusive` is true.
- * Publishing to a chain without the correct token causes `ps_publish` to return
- * an error. */
-token_t ps_advertise(chain_id chain, bool exclusive);
+typedef bool (*ps_callback_f)(token_t token, const void *arg, self_t *self);
 
 #define PS_SUCCESS   0
 #define PS_NOT_READY 1
 #define PS_INVALID   2
+#define PS_ERROR     (-(PS_INVALID | 0))
 
 /* ps_publish publishes (ie, dispatches) an event to a chain.
  *
@@ -95,7 +93,17 @@ token_t ps_advertise(chain_id chain, bool exclusive);
  *
  * Returns 0 if success, otherwise non-zero.
  */
-int ps_publish(token_t token, event_id event, const void *arg, void *ret);
+int ps_publish(token_t token, const void *arg, self_t *self);
+
+/* ps_republish republishes to the suffix of a chain.
+ *
+ * This function can be used inside handlers to republish an event to the
+ * current chain using the token given in the callback. Only the suffix of the
+ * chain receives the publication. This can be used to create tree chains or to
+ * lookahead, by allowing the suffix of the chain to execute before the current
+ * handler performs an action (once the republish macro returns).
+ */
+int ps_republish(token_t token, const void *arg, self_t *self);
 
 /* ps_subscribe subscribes a callback in a chain for an event.
  *
@@ -107,62 +115,5 @@ int ps_publish(token_t token, event_id event, const void *arg, void *ret);
  * Returns 0 if success, otherwise non-zero.
  */
 int ps_subscribe(chain_id chain, event_id event, ps_callback_f cb);
-
-
-/* PS_SUBSCRIBE macro creates a callback handler and subscribes to a chain.
- *
- * On load time, a constructor function registers the handler to the chain. The
- * order in which modules are loaded must be considered when planning for the
- * relation between handlers. The order is either given by linking order (if
- * compilation units are linked together) or by the order of shared libraries in
- * LD_PRELOAD.
- */
-#define PS_SUBSCRIBE(CHAIN, EVENT, CALLBACK)                                   \
-    static bool _ps_callback_##CHAIN##_##EVENT(token_t token, event_id event,  \
-                                               const void *arg, void *ret)     \
-    {                                                                          \
-        CALLBACK;                                                              \
-        return true;                                                           \
-    }                                                                          \
-    static void BINGO_CTOR _ps_subscribe_##CHAIN##_##EVENT(void)               \
-    {                                                                          \
-        if (ps_subscribe(CHAIN, EVENT, _ps_callback_##CHAIN##_##EVENT) !=      \
-            PS_SUCCESS)                                                        \
-            exit(EXIT_FAILURE);                                                \
-    }
-
-/* EVENT_PAYLOAD casts the event argument `arg` to type of the given variable.
- *
- * This macro is intended to be used with PS_SUBSCRIBE_EVENT. The user must know
- * the type of the argument and then the following pattern can be used:
- *
- *     PS_SUBSCRIBE_EVENT(SOME_CHAIN, SOME_EVENT, {
- *         const some_known_type *ev = EVENT_PAYLOAD(ev);
- *         ...
- *         })
- */
-#define EVENT_PAYLOAD(var) (__typeof(var))arg
-
-/* PS_PUBLISH macro publishes to `chain` with a non-exclusive token. */
-#define PS_PUBLISH(chain, event, arg, ret)                                     \
-    do {                                                                       \
-        if (ps_publish(ps_advertise(chain, false), event, arg, ret) !=         \
-            PS_SUCCESS)                                                        \
-            abort();                                                           \
-    } while (0);
-
-/* PS_REPUBLISH macro republishes to the suffix of a chain.
- *
- * This macro can be used inside handlers to republish an event to the current
- * chain using the token given in the callback. Only the suffix of the chain
- * receives the publication. This can be used to create tree chains or to
- * lookahead, by allowing the suffix of the chain to execute before the current
- * handler performs an action (once the republish macro returns).
- */
-#define PS_REPUBLISH(event, arg, ret)                                          \
-    do {                                                                       \
-        if (ps_publish((token), event, arg, ret) != PS_SUCCESS)                \
-            abort();                                                           \
-    } while (0);
 
 #endif /* BINGO_PUBSUB_H */

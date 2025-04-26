@@ -9,8 +9,7 @@
  ******************************************************************************/
 #include <stdint.h>
 
-#include <bingo/intercept.h>
-#include <bingo/intercept/stacktrace.h>
+#include <bingo/capture/stacktrace.h>
 #include <bingo/interpose.h>
 #include <bingo/module.h>
 
@@ -20,11 +19,11 @@ void
 __tsan_func_entry(void *caller)
 {
     const stacktrace_event_t ev = {.caller = caller, .pc = INTERPOSE_PC};
-    intercept_at(EVENT_STACKTRACE_ENTER, &ev, 0);
+    capture_event(EVENT_STACKTRACE_ENTER, &ev);
 }
 void
 __tsan_func_exit(void)
 {
     const stacktrace_event_t ev = {.pc = INTERPOSE_PC};
-    intercept_at(EVENT_STACKTRACE_EXIT, &ev, 0);
+    capture_event(EVENT_STACKTRACE_EXIT, &ev);
 }

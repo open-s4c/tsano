@@ -1,7 +1,7 @@
 /*
  * Copyright (C) Huawei Technologies Co., Ltd. 2025. All rights reserved.
  * SPDX-License-Identifier: MIT
- *
+ * -----------------------------------------------------------------------------
  * Thread "self-awareness"
  *
  * This module implements TLS management with the memory from mempool.h and
@@ -15,20 +15,19 @@
  *
  * This should be the first module subscribing to all events from pubsub.
  */
-
-#include <assert.h>
-#include <pthread.h>
-#include <stdio.h>
-#include <string.h>
-
-#define BINGO_XTOR_PRIO 204
+#include "core.h"
 #include "rbtree.h"
 
-#include <bingo/intercept.h>
+#include <assert.h>
+#include <bingo/capture.h>
 #include <bingo/log.h>
 #include <bingo/mempool.h>
 #include <bingo/pubsub.h>
 #include <bingo/self.h>
+#include <bingo/thread_id.h>
+#include <pthread.h>
+#include <stdio.h>
+#include <string.h>
 #include <vsync/atomic.h>
 
 // #define USE_THRMAP
@@ -37,6 +36,7 @@
 typedef struct thread_data {
     int guard;
     thread_id tid;
+    int count;
     struct rbtree tree;
 } thrdata_t;
 
@@ -47,7 +47,6 @@ struct tls_item {
 };
 
 static vatomic64_t _thread_count = VATOMIC_INIT(0);
-static thrdata_t *_self_construct(event_id event);
 
 static void _self_destruct(void *);
 static void _tls_init(thrdata_t *td);
@@ -198,7 +197,7 @@ _thrdata_new(void)
     if (i == NULL)
         log_fatalf("could not allocate thread data");
 
-    /* initialize thread data */
+    // initialize thread data
     memset(&i->data, 0, size);
     i->key        = item_key;
     thrdata_t *td = (thrdata_t *)i->data;
@@ -206,7 +205,7 @@ _thrdata_new(void)
     td->tid       = vatomic64_inc_get(&_thread_count);
     _tls_init(td);
 
-    /* add to tree */
+    // add to tree
     rwlock_write_acquire(&_rwlock);
     rbtree_insert(&td->tree, &i->node);
     rwlock_write_release(&_rwlock);
@@ -246,6 +245,7 @@ _thrdata_new()
 {
     thrdata_t *td = mempool_alloc(sizeof(thrdata_t));
     td->guard     = 0;
+    td->count     = 0;
     td->tid       = vatomic64_inc_get(&_thread_count);
     _tls_init(td);
 
@@ -266,19 +266,19 @@ _thrdata_del(thrdata_t *td)
 // public interface
 // -----------------------------------------------------------------------------
 BINGO_HIDE thread_id
-self_id()
+self_id(self_t *self)
 {
-    thrdata_t *td = _thrdata_get();
+    thrdata_t *td = (thrdata_t *)self;
     return td ? td->tid : NO_THREAD;
 }
 
 BINGO_HIDE void *
-self_tls(const void *global, size_t size)
+self_tls(self_t *self, const void *global, size_t size)
 {
     uintptr_t item_key = (uintptr_t)global;
-    thrdata_t *td      = _thrdata_get();
+    thrdata_t *td      = (thrdata_t *)self;
 
-    /* should never be called before the self initialization */
+    // should never be called before the self initialization
     assert(td != NULL);
 
     struct tls_item key = {.key = item_key};
@@ -299,81 +299,143 @@ self_tls(const void *global, size_t size)
 }
 
 // -----------------------------------------------------------------------------
-// pthread constructor and destructor
+// self init, fini, etc
 // -----------------------------------------------------------------------------
+
 static void
 _self_destruct(void *arg)
 {
-    /* In some systems (eg, NetBSD) threads still call interceptors while
-     * terminating (inside pthread_exit). Setting _key to NULL instructs the
-     * pubsub to ignore further events. No further TLS data will be
-     * (re)created because no EVENT_THREAD_INIT will be published for this
-     * thread anymore.
-     */
+    // In some systems (eg, NetBSD) threads still call interceptors while
+    // terminating (inside pthread_exit). Setting _key to NULL instructs the
+    // pubsub to ignore further events. No further TLS data will be
+    // (re)created because no EVENT_THREAD_INIT will be published for this
+    // thread anymore.
     if (arg == NULL)
         return;
 
-    /* TODO: change order of atexit destructors */
+    // TODO: change order of atexit destructors
 
     _thrdata_del(arg);
     _tls_fini(arg);
     mempool_free(arg);
 }
 
-static thrdata_t *
-_self_construct(event_id event)
+BINGO_HIDE void
+_self_init()
 {
-    thrdata_t *td = _thrdata_get();
-    if (td != NULL || event != EVENT_THREAD_INIT)
-        return td;
+    // First, prepare the map for tls
+    _thrmap_init();
 
-    /* We only initialize the TLS if the event is a THREAD_INIT event. */
-    return _thrdata_new();
+    // construct tls for main thread, but do not publish any event yet. On the
+    // first event of the main thread (handled by self's callback), we piggyback
+    // a EVENT_THREAD_INIT for the main thread.
+    (void)_thrdata_new();
+}
+
+BINGO_HIDE void
+_self_fini()
+{
+    capture_event(EVENT_THREAD_FINI, 0);
+    _thrmap_fini();
 }
 
 // -----------------------------------------------------------------------------
 // pubsub handler
 // -----------------------------------------------------------------------------
-BINGO_HIDE void
-self_handle(token_t token, event_id event, const void *arg, void *ret)
+static void
+_self_guard(token_t token, const void *arg, thrdata_t *td)
 {
-    /* The goal here is to wrap the existing event with a seq_value_t that
-     * contains also the thread id calculated here when allocating the _key
-     * in the TLS. */
-    thrdata_t *td = _self_construct(event);
-    if (td == NULL)
+    td->guard++;
+    td->count++;
+    int err = _ps_republish(token, arg, (self_t *)td);
+    td->guard--;
+    if (unlikely(err == PS_ERROR))
+        abort();
+}
+
+static void
+_self_handle_before(token_t token, const void *arg, self_t *s)
+{
+    thrdata_t *td = (s ? (thrdata_t *)s : _thrdata_get());
+    if (unlikely(td == NULL))
         return;
 
-    chain_id chain = chain_from(token);
+    if (td->guard++ == 0)
+        _self_guard(token, arg, td);
+}
 
-    if ((chain == INTERCEPT_BEFORE && td->guard++ == 0) ||
-        (chain == INTERCEPT_AFTER && td->guard-- == 1) ||
-        (chain == INTERCEPT_AT && td->guard == 0)) {
-        td->guard++;
-        PS_REPUBLISH(event, arg, ret);
-        td->guard--;
+static void
+_self_handle_after(token_t token, const void *arg, self_t *s)
+{
+    thrdata_t *td = (s ? (thrdata_t *)s : _thrdata_get());
+    if (unlikely(td == NULL))
+        return;
+
+    if (td->guard-- == 1)
+        _self_guard(token, arg, td);
+}
+
+static void
+_self_handle_event(token_t token, const void *arg, self_t *s)
+{
+    thrdata_t *td = (s ? (thrdata_t *)s : _thrdata_get());
+    if (td == NULL)
+        if (token.event == EVENT_THREAD_INIT)
+            // Only initialize TLS if the event is a THREAD_INIT event.
+            td = _thrdata_new();
+
+    if (unlikely(td == NULL))
+        return;
+
+    if (unlikely(td->tid == MAIN_THREAD && td->count == 0)) {
+        // inform remainder of chain that main thread started
+        token_t tinit = {
+            .index = token.index,
+            .chain = CAPTURE_EVENT,
+            .event = EVENT_THREAD_INIT,
+        };
+        if (_ps_republish(tinit, 0, (self_t *)td) != PS_SUCCESS)
+            abort();
     }
 
-    /* Destruct thread data */
-    if (event == EVENT_THREAD_FINI)
+    if (td->guard == 0)
+        _self_guard(token, arg, td);
+
+    // Destruct thread data
+    if (unlikely(token.event == EVENT_THREAD_FINI))
         _self_destruct(td);
 }
 
-/* Filter all events guarding from reentries */
-PS_SUBSCRIBE(ANY_CHAIN, ANY_EVENT, {
-    self_handle(token, event, arg, ret);
+BINGO_HIDE void
+_self_handle(token_t token, const void *arg, self_t *self)
+{
+    switch (token.chain) {
+        case CAPTURE_BEFORE:
+            _self_handle_before(token, arg, self);
+            break;
+        case CAPTURE_AFTER:
+            _self_handle_after(token, arg, self);
+            break;
+        case CAPTURE_EVENT:
+            _self_handle_event(token, arg, self);
+            break;
+    }
+}
+
+// Filter after events guarding from reentrie
+REGISTER_CALLBACK(CAPTURE_BEFORE, ANY_EVENT, {
+    _self_handle_before(token, arg, self);
     return false;
 })
 
-BINGO_MODULE_INIT({
-    _thrmap_init();
-    /* construct tls for main thread, but do not publish any event.
-     * Downstream handlers should learn the existence of the main thread on
-     * demand. */
-    _self_construct(EVENT_THREAD_INIT);
+// Filter before events guarding from reentries
+REGISTER_CALLBACK(CAPTURE_AFTER, ANY_EVENT, {
+    _self_handle_after(token, arg, self);
+    return false;
 })
 
-BINGO_MODULE_FINI({
-    _thrmap_fini();
-    intercept_at(EVENT_THREAD_FINI, 0, 0);
+// Filter events guarding from reentries
+REGISTER_CALLBACK(CAPTURE_EVENT, ANY_EVENT, {
+    _self_handle_event(token, arg, self);
+    return false;
 })

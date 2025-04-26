@@ -5,8 +5,7 @@
 #include <assert.h>
 #include <pthread.h>
 
-#include <bingo/intercept.h>
-#include <bingo/intercept/pthread.h>
+#include <bingo/capture/pthread.h>
 #include <bingo/interpose.h>
 
 INTERPOSE(int, pthread_cond_wait, pthread_cond_t *cond, pthread_mutex_t *mutex)
@@ -14,9 +13,9 @@ INTERPOSE(int, pthread_cond_wait, pthread_cond_t *cond, pthread_mutex_t *mutex)
     struct pthread_cond_event ev = {.cond  = cond,
                                     .mutex = mutex,
                                     .pc    = INTERPOSE_PC};
-    intercept_before(EVENT_COND_WAIT, &ev, 0);
+    capture_before(EVENT_COND_WAIT, &ev);
     ev.ret = REAL(pthread_cond_wait, cond, mutex);
-    intercept_after(EVENT_COND_WAIT, &ev, 0);
+    capture_after(EVENT_COND_WAIT, &ev);
     return ev.ret;
 }
 
@@ -26,27 +25,27 @@ INTERPOSE(int, pthread_cond_timedwait, pthread_cond_t *cond,
     struct pthread_cond_event ev = {.cond  = cond,
                                     .mutex = mutex,
                                     .pc    = INTERPOSE_PC};
-    intercept_before(EVENT_COND_TIMEDWAIT, &ev, 0);
+    capture_before(EVENT_COND_TIMEDWAIT, &ev);
     ev.ret = REAL(pthread_cond_timedwait, cond, mutex, abstime);
-    intercept_after(EVENT_COND_TIMEDWAIT, &ev, 0);
+    capture_after(EVENT_COND_TIMEDWAIT, &ev);
     return ev.ret;
 }
 
 INTERPOSE(int, pthread_cond_signal, pthread_cond_t *cond)
 {
     struct pthread_cond_event ev = {.cond = cond, .pc = INTERPOSE_PC};
-    intercept_before(EVENT_COND_SIGNAL, &ev, 0);
+    capture_before(EVENT_COND_SIGNAL, &ev);
     ev.ret = REAL(pthread_cond_signal, cond);
-    intercept_after(EVENT_COND_SIGNAL, &ev, 0);
+    capture_after(EVENT_COND_SIGNAL, &ev);
     return ev.ret;
 }
 
 INTERPOSE(int, pthread_cond_broadcast, pthread_cond_t *cond)
 {
     struct pthread_cond_event ev = {.cond = cond, .pc = INTERPOSE_PC};
-    intercept_before(EVENT_COND_BROADCAST, &ev, 0);
+    capture_before(EVENT_COND_BROADCAST, &ev);
     ev.ret = REAL(pthread_cond_broadcast, cond);
-    intercept_after(EVENT_COND_BROADCAST, &ev, 0);
+    capture_after(EVENT_COND_BROADCAST, &ev);
     return ev.ret;
 }
 

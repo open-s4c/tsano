@@ -30,8 +30,6 @@
         } while (0)
 #endif
 
-BINGO_MODULE_INIT()
-
 typedef struct {
     vmutex_t mutex;
     vcond_t cnd[SWITCHER_NBUCKETS];
@@ -60,7 +58,7 @@ switcher_yield(thread_id id, bool any)
 
     int bucket = id % SWITCHER_NBUCKETS;
 
-    /* before the slack time passes, we still have a chance to continue */
+    // before the slack time passes, we still have a chance to continue
     if (_switcher.slack && _switcher.prev == id) {
         next = id;
     }
@@ -68,7 +66,7 @@ switcher_yield(thread_id id, bool any)
     _switcher.cnd_counter[bucket]++;
 
     while (next != id && _switcher.status != SWITCHER_ABORTED &&
-           /* if any == false, the next condition is disabled */
+           // if any == false, the next condition is disabled
            (!any || next != ANY_THREAD)) {
         vcond_signal(&_switcher.cnd[bucket]);
         vcond_wait(&_switcher.cnd[bucket], &_switcher.mutex);

@@ -1,10 +1,7 @@
 /*
  * Copyright (C) Huawei Technologies Co., Ltd. 2025. All rights reserved.
  * SPDX-License-Identifier: MIT
- */
-#ifndef BINGO_MEMPOOL_H
-#define BINGO_MEMPOOL_H
-/*******************************************************************************
+ * -----------------------------------------------------------------------------
  * @file mempool.h
  * @brief Pool allocator safe during load time.
  *
@@ -12,7 +9,9 @@
  * pool component.  On initialization of libbingo, a memory pool is created by
  * the main thread.  New threads can safely allocate from the memory pool even
  * before TLS region is properly initialized.
- ******************************************************************************/
+ */
+#ifndef BINGO_MEMPOOL_H
+#define BINGO_MEMPOOL_H
 #include <stddef.h>
 
 /* mempool_alloc allocates a region of memory of `size` bytes.

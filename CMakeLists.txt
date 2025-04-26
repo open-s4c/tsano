@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 project(
   bingo
   LANGUAGES C CXX ASM
-  VERSION 0.1)
+  VERSION 0.2)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 

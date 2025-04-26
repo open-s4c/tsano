@@ -11,7 +11,7 @@
 #define ANOTHER_CHAIN 101
 
 int count = 0;
-PS_SUBSCRIBE(CHAIN, {
+REGISTER_CALLBACK(CHAIN, {
     printf("event from CHAIN\n");
     count++;
 })

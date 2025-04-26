@@ -9,6 +9,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include <bingo/capture.h>
+
 #define _EVENT_START 30
 enum memaccess_events {
     EVENT_MA_READ         = 0 + _EVENT_START,

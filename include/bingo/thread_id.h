@@ -8,8 +8,9 @@
 #include <stdint.h>
 
 typedef uint64_t thread_id;
-#define NO_THREAD  ((thread_id)0)
-#define ANY_THREAD (~NO_THREAD)
+#define NO_THREAD   ((thread_id)0)
+#define ANY_THREAD  (~NO_THREAD)
+#define MAIN_THREAD 1
 
 #define _EVENT_START 1
 enum thread_events {

@@ -7,11 +7,12 @@ add_test(rbtree_test rbtree_test)
 
 set(SRCS
     # Stateless components
+    core.c
     idmap.c
     rbtree.c
+    capture.c
     # Stateful components
     mempool.c
-    intercept.c
     # pubsub component must be the last core component to be initialized. it
     # guarantees no event is published before the previous components are ready.
     pubsub.c
@@ -45,12 +46,14 @@ set(MODS
     ../mod/stacktrace.c)
 
 add_library(bingo.a STATIC ${SRCS} ${MODS})
-target_compile_options(bingo.a PUBLIC -DBINGO_LTO)
+target_compile_options(bingo.a PUBLIC -DBINGO_PS_EXTERNAL
+                                      -DBINGO_PS_DIRECT_SELF)
 target_link_libraries(bingo.a PUBLIC bingo.h)
 set_property(TARGET bingo.a PROPERTY SUFFIX "")
 install(TARGETS bingo.a DESTINATION lib/bingo)
 
 add_library(bingo SHARED ${SRCS} ${MODS})
+target_compile_options(bingo PUBLIC -DBINGO_PS_DIRECT_SELF)
 target_link_libraries(bingo PUBLIC bingo.h)
 target_link_libraries(bingo PRIVATE pthread)
 install(TARGETS bingo DESTINATION lib)

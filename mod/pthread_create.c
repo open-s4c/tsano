@@ -5,8 +5,7 @@
 #include <pthread.h>
 #include <stdlib.h>
 
-#include <bingo/intercept.h>
-#include <bingo/intercept/pthread.h>
+#include <bingo/capture/pthread.h>
 #include <bingo/interpose.h>
 #include <bingo/mempool.h>
 #include <bingo/module.h>
@@ -24,7 +23,7 @@ typedef struct {
 BINGO_NORET
 INTERPOSE(void, pthread_exit, void *ptr)
 {
-    intercept_at(EVENT_THREAD_FINI, 0, 0);
+    capture_event(EVENT_THREAD_FINI, 0);
     REAL(pthread_exit, ptr);
     exit(1); // unreachable
 }
@@ -37,9 +36,9 @@ _trampoline(void *targ)
     void *(*run)(void *) = t->run;
     mempool_free(t);
 
-    intercept_at(EVENT_THREAD_INIT, 0, 0);
+    capture_event(EVENT_THREAD_INIT, 0);
     void *ret = run(arg);
-    intercept_at(EVENT_THREAD_FINI, 0, 0);
+    capture_event(EVENT_THREAD_FINI, 0);
     return ret;
 }
 
@@ -52,18 +51,20 @@ INTERPOSE(int, pthread_create, pthread_t *thread, const pthread_attr_t *attr,
     *t = (trampoline_t){.arg = arg, .run = run};
 
     struct pthread_create_event ev = {.thread = thread, .pc = INTERPOSE_PC};
-    intercept_before(EVENT_THREAD_CREATE, &ev, 0);
+
+    capture_before(EVENT_THREAD_CREATE, &ev);
     ev.ret = REAL(pthread_create, thread, attr, _trampoline, t);
-    intercept_after(EVENT_THREAD_CREATE, &ev, 0);
+    capture_after(EVENT_THREAD_CREATE, &ev);
     return ev.ret;
 }
 
 INTERPOSE(int, pthread_join, pthread_t thread, void **ptr)
 {
     struct pthread_join_event ev = {.thread = thread, .pc = INTERPOSE_PC};
-    intercept_before(EVENT_THREAD_JOIN, &ev, 0);
+
+    capture_before(EVENT_THREAD_JOIN, &ev);
     ev.ret = REAL(pthread_join, thread, ptr);
-    intercept_after(EVENT_THREAD_JOIN, &ev, 0);
+    capture_after(EVENT_THREAD_JOIN, &ev);
 
     return ev.ret;
 }

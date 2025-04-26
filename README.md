@@ -110,16 +110,16 @@ You can add your own subscriber module and load it the same way to process event
 
 ```c
 #include <stdio.h>
-#include <bingo/pubsub.h>
+#include <bingo/capture.h>
 #include <bingo/module.h>
 
-static bool log_callback(token_t token, event_id event, const void *data) {
+static bool log_callback(token_t token, const void *data, self_t *self) {
     fprintf(stderr, "[logger] Event received: chain=%d, event_id=%d, data=%p\n",
-            token->chain_id, event_id, data);
+            token->chain, token->event, data);
     return true; // continue chain
 }
 
-PS_SUBSCRIVE(ANY_CHAIN, ANY_EVENT, {
+REGISTER_CALLBACK(ANY_CHAIN, ANY_EVENT, {
     log_callback(token, event, arg);
 })
 ```
@@ -131,7 +131,7 @@ gcc -fPIC -shared -o libbingo-logger.so logger.c -I/path/to/bingo/include
 
 **Run:**
 ```sh
-LD_PRELOAD=./libbingo.so:./libbingo-logger.so ./your_program
+env LD_PRELOAD=./libbingo.so:./libbingo-logger.so ./your_program
 ```
 
 ---

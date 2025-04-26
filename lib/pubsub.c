@@ -2,21 +2,11 @@
  * Copyright (C) Huawei Technologies Co., Ltd. 2025. All rights reserved.
  * SPDX-License-Identifier: MIT
  */
+#include "core.h"
+
 #include <assert.h>
-#include <stdio.h>
-
-#define BINGO_XTOR_PRIO 202
-#include <bingo/module.h>
 #include <bingo/pubsub.h>
-
-typedef union {
-    struct {
-        uint32_t index;
-        chain_id chain;
-        bool exclusive;
-    } details;
-    token_t as_token;
-} timpl_t;
+#include <stdio.h>
 
 #define MAX_SUBSCRIPTIONS 512
 
@@ -41,28 +31,6 @@ struct chain {
 
 static bool _initd;
 static struct chain _chains[MAX_CHAINS];
-
-BINGO_HIDE chain_id
-chain_from(token_t token)
-{
-    timpl_t timpl;
-    timpl.as_token = token;
-    return timpl.details.chain;
-}
-
-BINGO_HIDE token_t
-ps_advertise(chain_id chain, bool exclusive)
-{
-    timpl_t timpl = {
-        .details =
-            {
-                .index     = 0,
-                .chain     = chain,
-                .exclusive = exclusive,
-            },
-    };
-    return timpl.as_token;
-}
 
 static inline int
 _ps_subscribe_event(chain_id chain, event_id event, ps_callback_f cb)
@@ -104,7 +72,83 @@ _ps_subscribe_chain(chain_id chain, event_id event, ps_callback_f cb)
     return PS_SUCCESS;
 }
 
+
+#ifndef BINGO_PS_EXTERNAL
 BINGO_HIDE int
+_ps_publish_do(token_t token, const void *arg, self_t *self)
+{
+    chain_id chain   = token.chain;
+    event_id event   = token.event;
+    size_t start_idx = token.index;
+
+    size_t chain_idx = chain - 1;
+    size_t event_idx = event - 1;
+    struct event *ev = &_chains[chain_idx].events[event_idx];
+
+    // There is only one subscription group that matches a (chain, event) pair.
+    // By design, if a subscriber at index sidx uses the token given to the
+    // callback to "republish", then only the subscriptions after sidx will
+    // receive the republication. See republish function */
+
+    for (size_t idx = start_idx; idx < ev->count; idx++) {
+        struct sub *subs = &ev->subs[idx];
+
+        // now we call the callback and abort the chain if the subscriber
+        // "censors" the event by returning false.
+        if (!subs->cb(token, arg, self))
+            return PS_SUCCESS;
+
+        // we increment token index to mark current subscriber in case
+        // subscriber wants to republish to the remainder of this chain.
+        token.index++;
+    }
+    return PS_SUCCESS;
+}
+#endif
+
+
+BINGO_HIDE int
+_ps_publish(token_t token, const void *arg, self_t *self)
+{
+    chain_id chain = token.chain;
+    event_id event = token.event;
+
+    if (!_initd)
+        return PS_NOT_READY;
+    if (chain == ANY_CHAIN || chain >= MAX_CHAINS)
+        return PS_INVALID;
+    if (event == ANY_EVENT || event >= MAX_EVENTS)
+        return PS_INVALID;
+    if (chain == CHAIN_NULL)
+        return PS_SUCCESS;
+
+#ifdef BINGO_PS_DIRECT_SELF
+    assert(token.index == 0);
+    _self_handle(token, arg, self);
+    return PS_SUCCESS;
+#else
+    return _ps_publish_do(token, arg, self);
+#endif
+}
+
+BINGO_HIDE int
+_ps_republish(token_t token, const void *arg, self_t *self)
+{
+    token.index++;
+    return _ps_publish_do(token, arg, self);
+}
+
+BINGO_HIDE void
+_ps_init()
+{
+    _initd = true;
+}
+
+// -----------------------------------------------------------------------------
+// public interface
+// -----------------------------------------------------------------------------
+
+int
 ps_subscribe(chain_id chain, event_id event, ps_callback_f cb)
 {
     assert(cb != NULL);
@@ -119,51 +163,14 @@ ps_subscribe(chain_id chain, event_id event, ps_callback_f cb)
     return PS_SUCCESS;
 }
 
-BINGO_WEAK BINGO_HIDE int
-ps_publish(token_t token, event_id event, const void *arg, void *ret)
+int
+ps_republish(token_t token, const void *arg, self_t *self)
 {
-    timpl_t timpl;
-    timpl.as_token   = token;
-    chain_id chain   = timpl.details.chain;
-    size_t start_idx = timpl.details.index;
-
-    if (!_initd)
-        return PS_NOT_READY;
-    if (chain == ANY_CHAIN || chain >= MAX_CHAINS)
-        return PS_INVALID;
-    if (event == ANY_EVENT || event >= MAX_EVENTS)
-        return PS_INVALID;
-    size_t chain_idx = chain - 1;
-    size_t event_idx = event - 1;
-    struct event *ev = &_chains[chain_idx].events[event_idx];
-    // There is only one subscription group that matches a (chain, event) pair.
-    // By design, if a subscriber at index sidx uses the token given to the
-    // callback to "republish", then only the subscriptions after sidx will
-    // receive the republication.
-
-    for (size_t idx = start_idx; idx < ev->count; idx++) {
-        struct sub *subs = &ev->subs[idx];
-
-        // we pass the up-to-date token in the callback in case the
-        // subscriber wants to republish to the remainder of this chain.
-        timpl.details.index++;
-
-        // to enforce exclusive rights to publish in a chain, we mark the
-        // subscriptions with exclusive or non-exclusive modes.
-        int token_mode = timpl.details.exclusive ? MODE_EXCL : MODE_NONEXCL;
-        if (subs->mode == MODE_UNDEF) {
-            subs->mode = token_mode;
-        } else if (subs->mode != token_mode) {
-            perror("wrong token mode");
-            return PS_INVALID;
-        }
-
-        // now we call the callback and abort the chain if the subscriber
-        // "censors" the event by returning false.
-        if (!subs->cb(timpl.as_token, event, arg, ret))
-            return PS_SUCCESS;
-    }
-    return PS_SUCCESS;
+    return _ps_republish(token, arg, self);
 }
 
-BINGO_MODULE_INIT({ _initd = true; })
+int
+ps_publish(token_t token, const void *arg, self_t *self)
+{
+    return _ps_publish(token, arg, self);
+}

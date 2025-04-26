@@ -2,14 +2,14 @@
  * Copyright (C) Huawei Technologies Co., Ltd. 2025. All rights reserved.
  * SPDX-License-Identifier: MIT
  */
-#include "idmap.h"
-
 #include <assert.h>
+#include <stdbool.h>
+#include <string.h>
+
+#include "idmap.h"
 #include <bingo/compiler.h>
 #include <bingo/log.h>
 #include <bingo/mempool.h>
-#include <stdbool.h>
-#include <string.h>
 
 #define IDMAP_INIT_SIZE 4
 #define ASSERT          assert
@@ -46,17 +46,18 @@ idmap_size(idmap_t *idmap)
     return idmap->size;
 }
 
-static size_t
+static inline size_t
 _idmap_find(idmap_t *idmap, uint64_t id, size_t *empty)
 {
     ASSERT(idmap);
     ASSERT(idmap->size == 0 || idmap->items);
-    *empty = idmap->size;
+    if (empty)
+        *empty = idmap->size;
 
     for (size_t i = 0; i < idmap->size; i++) {
         if (idmap->items[i] == id)
             return i;
-        if (idmap->items[i] == 0)
+        if (empty && idmap->items[i] == 0)
             *empty = i;
     }
     return idmap->size;
@@ -65,8 +66,7 @@ _idmap_find(idmap_t *idmap, uint64_t id, size_t *empty)
 BINGO_HIDE size_t
 idmap_find(idmap_t *idmap, uint64_t id)
 {
-    size_t empty;
-    return _idmap_find(idmap, id, &empty);
+    return _idmap_find(idmap, id, 0);
 }
 
 

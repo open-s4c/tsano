@@ -5,6 +5,8 @@
 #ifndef BINGO_SEM_H
 #define BINGO_SEM_H
 
+#include <bingo/capture.h>
+
 #define _EVENT_START 20
 enum sem_events {
     EVENT_SEM_POST      = 0 + _EVENT_START,

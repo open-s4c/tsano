@@ -8,21 +8,19 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define BINGO_XTOR_PRIO 200
+#include <bingo/compiler.h>
 #include <bingo/mempool.h>
-#include <bingo/module.h>
 #include <vsync/spinlock/caslock.h>
 
-const size_t mempool_size = 1024 * 1024 * 200;
-static size_t _sizes[]    = {32,
-                             128,
-                             512,
-                             1024,
-                             2048,
-                             8192,
-                             1 * 1024 * 1024,
-                             4 * 1024 * 1024,
-                             8 * 1024 * 1024};
+static size_t _sizes[] = {32,
+                          128,
+                          512,
+                          1024,
+                          2048,
+                          8192,
+                          1 * 1024 * 1024,
+                          4 * 1024 * 1024,
+                          8 * 1024 * 1024};
 #define NSTACKS (sizeof(_sizes) / sizeof(size_t))
 
 static unsigned int
@@ -56,8 +54,8 @@ typedef struct mempool {
 
 static mempool_t _mp;
 
-static void
-_mempool_init(size_t cap)
+BINGO_HIDE void
+mempool_init(size_t cap)
 {
     _mp.allocated = 0;
     memset(&_mp.stack, 0, sizeof(entry_t *) * NSTACKS);
@@ -69,8 +67,8 @@ _mempool_init(size_t cap)
     caslock_init(&_mp.lock);
 }
 
-static void
-_mempool_fini()
+BINGO_HIDE void
+mempool_fini()
 {
     if (_mp.pool.memory)
         free(_mp.pool.memory);
@@ -140,10 +138,3 @@ mempool_free(void *ptr)
     *stack  = e;
     caslock_release(&mp->lock);
 }
-
-BINGO_MODULE_INIT({ _mempool_init(mempool_size); })
-
-BINGO_MODULE_FINI({
-    // log_debugf("allocated memory on fini: %lu\n", _mp.allocated);
-    _mempool_fini();
-})

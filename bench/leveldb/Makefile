@@ -36,7 +36,7 @@ CFG.patch=	git checkout .
 BLD.patch=	git apply $(ROOT)/patches/01-leveldb
 
 TARGET+=	lib
-CFG.lib=	cmake -S$(ROOT)/.. -B. -DCMAKE_BUILD_TYPE=Release
+CFG.lib=	cmake -S$(ROOT)/../.. -B. -DCMAKE_BUILD_TYPE=Release
 BLD.lib=	$(MAKE) -C lib && $(MAKE) -C mod
 
 # ------------------------------------------------------------------------------
@@ -66,14 +66,14 @@ PRO.tsan=	$(PARSE)
 TARGET+=	tsano
 DEP.tsano=	.tsan.bld
 DIR.tsano=	$(DIR.tsan)
-RUN.tsano=	$(ROOT)/../scripts/tsano $(RUNCMD)
+RUN.tsano=	$(ROOT)/../../scripts/tsano $(RUNCMD)
 PRO.tsano=	$(PARSE)
 
 TARGET+=	bingo
 DEP.bingo=	.tsan.bld
 DIR.bingo=	$(DIR.tsan)
-RUN.bingo=	$(ROOT)/../scripts/bingo $(RUNCMD)
+RUN.bingo=	$(ROOT)/../../scripts/bingo $(RUNCMD)
 PRO.bingo=	$(PARSE)
 
 # ------------------------------------------------------------------------------
-include bench.mk
+include ../bench.mk
