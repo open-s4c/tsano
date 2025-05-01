@@ -9,7 +9,7 @@
 #include <bingo/switcher.h>
 
 REGISTER_CALLBACK(CAPTURE_EVENT, ANY_EVENT, {
-    switch (token.event) {
+    switch (event_from(token)) {
         case EVENT_THREAD_FINI:
             switcher_wake(ANY_THREAD, 0);
             break;

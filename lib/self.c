@@ -15,19 +15,19 @@
  *
  * This should be the first module subscribing to all events from pubsub.
  */
+#include <assert.h>
+#include <pthread.h>
+#include <stdio.h>
+#include <string.h>
+
 #include "core.h"
 #include "rbtree.h"
-
-#include <assert.h>
 #include <bingo/capture.h>
 #include <bingo/log.h>
 #include <bingo/mempool.h>
 #include <bingo/pubsub.h>
 #include <bingo/self.h>
 #include <bingo/thread_id.h>
-#include <pthread.h>
-#include <stdio.h>
-#include <string.h>
 #include <vsync/atomic.h>
 
 // #define USE_THRMAP
@@ -80,7 +80,6 @@ _tls_fini(thrdata_t *td)
 // -----------------------------------------------------------------------------
 #ifdef USE_IDMAP
     #include "idmap.h"
-
     #include <vsync/spinlock/seqlock.h>
     #define MAX_THREADS 4096
 
@@ -380,7 +379,7 @@ _self_handle_event(token_t token, const void *arg, self_t *s)
 {
     thrdata_t *td = (s ? (thrdata_t *)s : _thrdata_get());
     if (td == NULL)
-        if (token.event == EVENT_THREAD_INIT)
+        if (event_from(token) == EVENT_THREAD_INIT)
             // Only initialize TLS if the event is a THREAD_INIT event.
             td = _thrdata_new();
 
@@ -389,11 +388,11 @@ _self_handle_event(token_t token, const void *arg, self_t *s)
 
     if (unlikely(td->tid == MAIN_THREAD && td->count == 0)) {
         // inform remainder of chain that main thread started
-        token_t tinit = {
-            .index = token.index,
-            .chain = CAPTURE_EVENT,
-            .event = EVENT_THREAD_INIT,
-        };
+        token_t tinit = (token_t){.details = {
+                                      .index = index_from(token),
+                                      .chain = CAPTURE_EVENT,
+                                      .event = EVENT_THREAD_INIT,
+                                  }};
         if (_ps_republish(tinit, 0, (self_t *)td) != PS_SUCCESS)
             abort();
     }
@@ -402,14 +401,14 @@ _self_handle_event(token_t token, const void *arg, self_t *s)
         _self_guard(token, arg, td);
 
     // Destruct thread data
-    if (unlikely(token.event == EVENT_THREAD_FINI))
+    if (unlikely(event_from(token) == EVENT_THREAD_FINI))
         _self_destruct(td);
 }
 
 BINGO_HIDE void
 _self_handle(token_t token, const void *arg, self_t *self)
 {
-    switch (token.chain) {
+    switch (chain_from(token)) {
         case CAPTURE_BEFORE:
             _self_handle_before(token, arg, self);
             break;

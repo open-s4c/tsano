@@ -2,22 +2,17 @@
  * Copyright (C) Huawei Technologies Co., Ltd. 2025. All rights reserved.
  * SPDX-License-Identifier: MIT
  */
-#include "core.h"
-
 #include <assert.h>
-#include <bingo/pubsub.h>
 #include <stdio.h>
 
-#define MAX_SUBSCRIPTIONS 512
+#include "core.h"
+#include <bingo/pubsub.h>
 
-#define MODE_UNDEF   0
-#define MODE_EXCL    1
-#define MODE_NONEXCL 2
+#define MAX_SUBSCRIPTIONS 512
 
 struct sub {
     chain_id chain;
     ps_callback_f cb;
-    int mode;
 };
 
 struct event {
@@ -31,6 +26,16 @@ struct chain {
 
 static bool _initd;
 static struct chain _chains[MAX_CHAINS];
+
+static inline token_t
+next_index(token_t token)
+{
+    return (token_t){.details = {
+                         .chain = chain_from(token),
+                         .event = event_from(token),
+                         .index = index_from(token) + 1,
+                     }};
+}
 
 static inline int
 _ps_subscribe_event(chain_id chain, event_id event, ps_callback_f cb)
@@ -77,9 +82,9 @@ _ps_subscribe_chain(chain_id chain, event_id event, ps_callback_f cb)
 BINGO_HIDE int
 _ps_publish_do(token_t token, const void *arg, self_t *self)
 {
-    chain_id chain   = token.chain;
-    event_id event   = token.event;
-    size_t start_idx = token.index;
+    chain_id chain   = chain_from(token);
+    event_id event   = event_from(token);
+    size_t start_idx = index_from(token);
 
     size_t chain_idx = chain - 1;
     size_t event_idx = event - 1;
@@ -100,7 +105,7 @@ _ps_publish_do(token_t token, const void *arg, self_t *self)
 
         // we increment token index to mark current subscriber in case
         // subscriber wants to republish to the remainder of this chain.
-        token.index++;
+        token.opaque = next_index(token).opaque;
     }
     return PS_SUCCESS;
 }
@@ -110,11 +115,11 @@ _ps_publish_do(token_t token, const void *arg, self_t *self)
 BINGO_HIDE int
 _ps_publish(token_t token, const void *arg, self_t *self)
 {
-    chain_id chain = token.chain;
-    event_id event = token.event;
+    chain_id chain = chain_from(token);
+    event_id event = event_from(token);
 
     if (!_initd)
-        return PS_NOT_READY;
+        return PS_DROP;
     if (chain == ANY_CHAIN || chain >= MAX_CHAINS)
         return PS_INVALID;
     if (event == ANY_EVENT || event >= MAX_EVENTS)
@@ -123,7 +128,7 @@ _ps_publish(token_t token, const void *arg, self_t *self)
         return PS_SUCCESS;
 
 #ifdef BINGO_PS_DIRECT_SELF
-    assert(token.index == 0);
+    assert(index_from(token) == 0);
     _self_handle(token, arg, self);
     return PS_SUCCESS;
 #else
@@ -134,8 +139,7 @@ _ps_publish(token_t token, const void *arg, self_t *self)
 BINGO_HIDE int
 _ps_republish(token_t token, const void *arg, self_t *self)
 {
-    token.index++;
-    return _ps_publish_do(token, arg, self);
+    return _ps_publish_do(next_index(token), arg, self);
 }
 
 BINGO_HIDE void

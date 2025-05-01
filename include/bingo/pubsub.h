@@ -53,21 +53,42 @@ typedef uint16_t chain_id;
 typedef struct self self_t;
 
 /* token_t is an object representing the permission to publish to a chain. */
-typedef struct token {
-    const chain_id chain;
-    const event_id event;
-    uint32_t index;
+typedef union token {
+    const struct {
+        chain_id chain;
+        event_id event;
+        uint32_t index;
+    } details;
+    uint64_t opaque;
 } token_t;
 
 /* Initializes a token */
 static inline token_t
 make_token(chain_id chain, event_id event)
 {
-    return (token_t){
-        .chain = chain,
-        .event = event,
-        .index = 0,
-    };
+    return (token_t){.details = {
+                         .chain = chain,
+                         .event = event,
+                         .index = 0,
+                     }};
+}
+
+static inline chain_id
+chain_from(token_t token)
+{
+    return token.details.chain;
+}
+
+static inline chain_id
+event_from(token_t token)
+{
+    return token.details.event;
+}
+
+static inline uint32_t
+index_from(token_t token)
+{
+    return token.details.index;
 }
 
 /* Context/self opaque metadata */
@@ -78,10 +99,10 @@ typedef struct self self_t;
  * stopped from being propagated in this chain. */
 typedef bool (*ps_callback_f)(token_t token, const void *arg, self_t *self);
 
-#define PS_SUCCESS   0
-#define PS_NOT_READY 1
-#define PS_INVALID   2
-#define PS_ERROR     (-(PS_INVALID | 0))
+#define PS_SUCCESS 0
+#define PS_DROP    1
+#define PS_INVALID 2
+#define PS_ERROR   (-(PS_INVALID | 0))
 
 /* ps_publish publishes (ie, dispatches) an event to a chain.
  *
