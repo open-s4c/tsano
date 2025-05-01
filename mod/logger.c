@@ -9,7 +9,7 @@
 #include <bingo/module.h>
 
 REGISTER_CALLBACK(
-    ANY_CHAIN, ANY_EVENT,
+    ANY_HOOK, ANY_TYPE,
     {
         // log_printf("%" PRIx64 "\t%u[%" PRIx64 "]\n", token._v, event,
         //         (uint64_t)pthread_self());

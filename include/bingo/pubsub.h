@@ -9,12 +9,10 @@
  * chain (aka topic), handlers are called back in the order of subscription.
  * Each handler has the option of interruping the chain by returning false.
  *
- * Events are identified by a type `event_id` and may contain contain an
- * immutable argument `arg` and a return value `ret`.
- *
- * This pubsub uses the concept of tokens. To publish to a chain, you first have
- * to retrieve a token for the chain. A token might be exlusive, making other
- * publishers to fail in runtime.
+ * Events are have a type (`type_id`) and have an argument `arg`. A chain is a
+ * pair given by a `hook_id` and a `type_id`. This pubsub uses the concept of
+ * tokens. To publish to a chain, you first have to retrieve a token for the
+ * chain. A token might be exlusive, making other publishers to fail in runtime.
  *
  * ## Naming
  *
@@ -29,34 +27,31 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-/* event_id represents the event type send to a chain. */
-typedef uint16_t event_id;
+/* type_id represents the type of an event. */
+typedef uint16_t type_id;
 
-/* MAX_EVENTS determines the maximum number of event types. */
-#define MAX_EVENTS 512
+/* MAX_TYPES determines the maximum number of event types. */
+#define MAX_TYPES 512
 
-/* ANY_EVENT indicates any chain. */
-#define ANY_EVENT 0
+/* ANY_TYPE indicates any event type. */
+#define ANY_TYPE 0
 
-/* chain_id identifies a subscriber group ordered by the subscription time. */
-typedef uint16_t chain_id;
+/* hook_id identifies a subscriber group ordered by the subscription time. */
+typedef uint16_t hook_id;
 
-/* MAX_CHAINS determines the maximum number of chains */
-#define MAX_CHAINS 16
+/* MAX_HOOKS determines the maximum number of hooks */
+#define MAX_HOOKS 16
 
-/* ANY_CHAIN indicates any chain. */
-#define ANY_CHAIN 0
-
-/* CHAIN_NULL is a special chain that never has subscribers. */
-#define CHAIN_NULL 0
+/* ANY_HOOK indicates any hook. */
+#define ANY_HOOK 0
 
 typedef struct self self_t;
 
 /* token_t is an object representing the permission to publish to a chain. */
 typedef union token {
     const struct {
-        chain_id chain;
-        event_id event;
+        hook_id hook;
+        type_id type;
         uint32_t index;
     } details;
     uint64_t opaque;
@@ -64,25 +59,25 @@ typedef union token {
 
 /* Initializes a token */
 static inline token_t
-make_token(chain_id chain, event_id event)
+make_token(hook_id hook, type_id type)
 {
     return (token_t){.details = {
-                         .chain = chain,
-                         .event = event,
+                         .hook  = hook,
+                         .type  = type,
                          .index = 0,
                      }};
 }
 
-static inline chain_id
-chain_from(token_t token)
+static inline hook_id
+hook_from(token_t token)
 {
-    return token.details.chain;
+    return token.details.hook;
 }
 
-static inline chain_id
-event_from(token_t token)
+static inline type_id
+type_from(token_t token)
 {
-    return token.details.event;
+    return token.details.type;
 }
 
 static inline uint32_t
@@ -109,19 +104,19 @@ typedef struct self self_t;
  * - PS_DROP: interrupt chain, discard event
  * - PS_ERROR: error occurred, abort system
  */
-typedef int (*ps_callback_f)(token_t token, const void *arg, self_t *self);
+typedef int (*ps_callback_f)(token_t token, void *event, self_t *self);
 
 /* ps_publish publishes (ie, dispatches) an event to a chain.
  *
- * The chain is identified by the token retrieved with `ps_advertise`. The type
- * of the event is given by `event`. Arguments `arg` and `ret` are input and
- * output arguments, respectively. They can be set to NULL. It is thread of the
- * subscribing handler to test for NULL and to cast `arg` and `ret` to correct
- * types based on `event`.
+ * The chain is identified by a hook and a event type. The type of the event is
+ * given by `event`. Arguments `arg` and `ret` are input and output arguments,
+ * respectively. They can be set to NULL. It is thread of the subscribing
+ * handler to test for NULL and to cast `arg` and `ret` to correct types based
+ * on `event`.
  *
  * Returns one of the PS_ error codes above.
  */
-int ps_publish(token_t token, const void *arg, self_t *self);
+int ps_publish(token_t token, void *event, self_t *self);
 
 /* ps_republish republishes to the suffix of a chain.
  *
@@ -131,7 +126,7 @@ int ps_publish(token_t token, const void *arg, self_t *self);
  * lookahead, by allowing the suffix of the chain to execute before the current
  * handler performs an action (once the republish macro returns).
  */
-int ps_republish(token_t token, const void *arg, self_t *self);
+int ps_republish(token_t token, void *event, self_t *self);
 
 /* ps_subscribe subscribes a callback in a chain for an event.
  *
@@ -142,6 +137,6 @@ int ps_republish(token_t token, const void *arg, self_t *self);
  *
  * Returns 0 if success, otherwise non-zero.
  */
-int ps_subscribe(chain_id chain, event_id event, ps_callback_f cb);
+int ps_subscribe(hook_id hook, type_id type, ps_callback_f cb);
 
 #endif /* BINGO_PUBSUB_H */

@@ -9,20 +9,20 @@
 #include <bingo/pubsub.h>
 
 void
-capture_event(event_id event, const void *arg)
+capture_event(type_id type, void *event)
 {
-    token_t token = make_token(CAPTURE_EVENT, event);
-    int err       = _ps_publish(token, arg, 0);
+    token_t token = make_token(CAPTURE_EVENT, type);
+    int err       = _ps_publish(token, event, 0);
     if ((err & PS_ERROR) == PS_ERROR) {
         exit(EXIT_FAILURE);
     }
 }
 
 int
-capture_before(event_id event, const void *arg)
+capture_before(type_id type, void *event)
 {
-    token_t token = make_token(CAPTURE_BEFORE, event);
-    int err       = _ps_publish(token, arg, 0);
+    token_t token = make_token(CAPTURE_BEFORE, type);
+    int err       = _ps_publish(token, event, 0);
     if ((err & PS_ERROR) == PS_ERROR) {
         exit(EXIT_FAILURE);
     }
@@ -30,10 +30,10 @@ capture_before(event_id event, const void *arg)
 }
 
 void
-capture_after(event_id event, const void *arg)
+capture_after(type_id type, void *event)
 {
-    token_t token = make_token(CAPTURE_AFTER, event);
-    int err       = _ps_publish(token, arg, 0);
+    token_t token = make_token(CAPTURE_AFTER, type);
+    int err       = _ps_publish(token, event, 0);
     if ((err & PS_ERROR) == PS_ERROR) {
         exit(EXIT_FAILURE);
     }

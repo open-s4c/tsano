@@ -18,12 +18,12 @@ BINGO_MODULE_INIT()
 void
 __tsan_func_entry(void *caller)
 {
-    const stacktrace_event_t ev = {.caller = caller, .pc = INTERPOSE_PC};
+    stacktrace_event_t ev = {.caller = caller, .pc = INTERPOSE_PC};
     capture_event(EVENT_STACKTRACE_ENTER, &ev);
 }
 void
 __tsan_func_exit(void)
 {
-    const stacktrace_event_t ev = {.pc = INTERPOSE_PC};
+    stacktrace_event_t ev = {.pc = INTERPOSE_PC};
     capture_event(EVENT_STACKTRACE_EXIT, &ev);
 }

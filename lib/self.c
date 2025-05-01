@@ -323,48 +323,48 @@ _self_destruct(void *arg)
 // pubsub handler
 // -----------------------------------------------------------------------------
 static void
-_self_guard(token_t token, const void *arg, thrdata_t *td)
+_self_guard(token_t token, void *event, thrdata_t *td)
 {
     td->guard++;
     td->count++;
-    int err = _ps_republish(token, arg, (self_t *)td);
+    int err = _ps_republish(token, event, (self_t *)td);
     td->guard--;
     if (unlikely(err == PS_ERROR))
         abort();
 }
 
 static int
-_self_handle_before(token_t token, const void *arg, self_t *s)
+_self_handle_before(token_t token, void *event, self_t *s)
 {
     thrdata_t *td = (s ? (thrdata_t *)s : _thrdata_get());
     if (unlikely(td == NULL))
         return PS_DROP;
 
     if (td->guard++ == 0)
-        _self_guard(token, arg, td);
+        _self_guard(token, event, td);
 
     return PS_STOP;
 }
 
 static int
-_self_handle_after(token_t token, const void *arg, self_t *s)
+_self_handle_after(token_t token, void *event, self_t *s)
 {
     thrdata_t *td = (s ? (thrdata_t *)s : _thrdata_get());
     if (unlikely(td == NULL))
         return PS_DROP;
 
     if (td->guard-- == 1)
-        _self_guard(token, arg, td);
+        _self_guard(token, event, td);
 
     return PS_STOP;
 }
 
 static int
-_self_handle_event(token_t token, const void *arg, self_t *s)
+_self_handle_event(token_t token, void *event, self_t *s)
 {
     thrdata_t *td = (s ? (thrdata_t *)s : _thrdata_get());
     if (td == NULL)
-        if (event_from(token) == EVENT_THREAD_INIT)
+        if (type_from(token) == EVENT_THREAD_INIT)
             // Only initialize TLS if the event is a THREAD_INIT event.
             td = _thrdata_new();
 
@@ -375,33 +375,33 @@ _self_handle_event(token_t token, const void *arg, self_t *s)
         // inform remainder of chain that main thread started
         token_t tinit = (token_t){.details = {
                                       .index = index_from(token),
-                                      .chain = CAPTURE_EVENT,
-                                      .event = EVENT_THREAD_INIT,
+                                      .hook  = CAPTURE_EVENT,
+                                      .type  = EVENT_THREAD_INIT,
                                   }};
         if (_ps_republish(tinit, 0, (self_t *)td) != PS_SUCCESS)
             abort();
     }
 
     if (td->guard == 0)
-        _self_guard(token, arg, td);
+        _self_guard(token, event, td);
 
     // Destruct thread data
-    if (unlikely(event_from(token) == EVENT_THREAD_FINI))
+    if (unlikely(type_from(token) == EVENT_THREAD_FINI))
         _self_destruct(td);
 
     return PS_STOP;
 }
 
 BINGO_HIDE int
-_self_handle(token_t token, const void *arg, self_t *self)
+_self_handle(token_t token, void *event, self_t *self)
 {
-    switch (chain_from(token)) {
+    switch (hook_from(token)) {
         case CAPTURE_BEFORE:
-            return _self_handle_before(token, arg, self);
+            return _self_handle_before(token, event, self);
         case CAPTURE_AFTER:
-            return _self_handle_after(token, arg, self);
+            return _self_handle_after(token, event, self);
         case CAPTURE_EVENT:
-            return _self_handle_event(token, arg, self);
+            return _self_handle_event(token, event, self);
     }
     return PS_INVALID;
 }
@@ -422,9 +422,9 @@ _self_init()
     (void)_thrdata_new();
 
     // Subscribe callbacks and abort on failure
-    if (0 != ps_subscribe(CAPTURE_BEFORE, ANY_EVENT, _self_handle_before) ||
-        0 != ps_subscribe(CAPTURE_AFTER, ANY_EVENT, _self_handle_after) ||
-        0 != ps_subscribe(CAPTURE_EVENT, ANY_EVENT, _self_handle_event))
+    if (0 != ps_subscribe(CAPTURE_BEFORE, ANY_TYPE, _self_handle_before) ||
+        0 != ps_subscribe(CAPTURE_AFTER, ANY_TYPE, _self_handle_after) ||
+        0 != ps_subscribe(CAPTURE_EVENT, ANY_TYPE, _self_handle_event))
         exit(EXIT_FAILURE);
 }
 

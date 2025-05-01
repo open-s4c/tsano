@@ -5,7 +5,7 @@
  * @file capture.h
  * @brief Standard capture functions.
  *
- * Bingo offers three standard capture chains. Events in these chains should
+ * Bingo offers three standard capture hooks. Events in these hooks should
  * only be published via the functions provided in this header.
  *
  * This header also provide macros to easily register callbacks.
@@ -18,8 +18,8 @@
 #include <bingo/compiler.h>
 #include <bingo/pubsub.h>
 
-/* Standard capture chains. */
-enum capture_chains {
+/* Standard capture hooks. */
+enum capture_hooks {
     CAPTURE_EVENT  = 1,
     CAPTURE_BEFORE = 2,
     CAPTURE_AFTER  = 3,
@@ -34,7 +34,7 @@ enum capture_chains {
  *
  * On error, aborts system.
  */
-void capture_event(event_id event, const void *arg);
+void capture_event(type_id type, void *event);
 
 /* Publish event before an action in the user code is executed.
  *
@@ -48,7 +48,7 @@ void capture_event(event_id event, const void *arg);
  * Returns PS_SUCCESS on sucess, PS_DROP if event should be dropped. On error,
  * aborts system.
  */
-int capture_before(event_id event, const void *arg);
+int capture_before(type_id type, void *event);
 
 /* Publish event after an action in the user code is executed.
  *
@@ -61,7 +61,7 @@ int capture_before(event_id event, const void *arg);
  *
  * On error, aborts system.
  */
-void capture_after(event_id event, const void *arg);
+void capture_after(type_id type, void *event);
 
 /* REGISTER_CALLBACK macro creates a callback handler and subscribes to a chain.
  *
@@ -71,31 +71,31 @@ void capture_after(event_id event, const void *arg);
  * compilation units are linked together) or by the order of shared libraries in
  * LD_PRELOAD.
  */
-#define REGISTER_CALLBACK(CHAIN, EVENT, CALLBACK)                              \
-    static int _bingo_callback_##CHAIN##_##EVENT(                              \
-        token_t token, const void *arg, self_t *self)                          \
+#define REGISTER_CALLBACK(HOOK, EVENT, CALLBACK)                               \
+    static int _bingo_callback_##HOOK##_##EVENT(token_t token, void *event,    \
+                                                self_t *self)                  \
     {                                                                          \
         CALLBACK;                                                              \
         return PS_SUCCESS;                                                     \
     }                                                                          \
-    static void BINGO_CTOR _bingo_subscribe_##CHAIN##_##EVENT(void)            \
+    static void BINGO_CTOR _bingo_subscribe_##HOOK##_##EVENT(void)             \
     {                                                                          \
-        if (ps_subscribe(CHAIN, EVENT, _bingo_callback_##CHAIN##_##EVENT) !=   \
+        if (ps_subscribe(HOOK, EVENT, _bingo_callback_##HOOK##_##EVENT) !=     \
             PS_SUCCESS)                                                        \
             exit(EXIT_FAILURE);                                                \
     }
 
-/* EVENT_PAYLOAD casts the event argument `arg` to type of the given variable.
+/* EVENT_PAYLOAD casts the event argument `event` to type of the given variable.
  *
  * This macro is intended to be used with REGISTER_CALLBACK. The user must know
  * the type of the argument and then the following pattern can be used:
  *
- *     REGISTER_CALLBACK(SOME_CHAIN, SOME_EVENT, {
- *         const some_known_type *ev = EVENT_PAYLOAD(ev);
+ *     REGISTER_CALLBACK(SOME_HOOK, SOME_EVENT, {
+ *         some_known_type *ev = EVENT_PAYLOAD(ev);
  *         ...
  *         })
  */
-#define EVENT_PAYLOAD(var) (__typeof(var))arg
+#define EVENT_PAYLOAD(var) (__typeof(var))event
 
 #define INTERPOSE_PC __builtin_extract_return_addr(__builtin_return_address(0))
 

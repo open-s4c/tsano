@@ -8,8 +8,8 @@
 #include <bingo/self.h>
 #include <bingo/switcher.h>
 
-REGISTER_CALLBACK(CAPTURE_EVENT, ANY_EVENT, {
-    switch (event_from(token)) {
+REGISTER_CALLBACK(CAPTURE_EVENT, ANY_TYPE, {
+    switch (type_from(token)) {
         case EVENT_THREAD_FINI:
             switcher_wake(ANY_THREAD, 0);
             break;
@@ -23,12 +23,12 @@ REGISTER_CALLBACK(CAPTURE_EVENT, ANY_EVENT, {
     return PS_STOP;
 })
 
-REGISTER_CALLBACK(CAPTURE_BEFORE, ANY_EVENT, {
+REGISTER_CALLBACK(CAPTURE_BEFORE, ANY_TYPE, {
     switcher_wake(ANY_THREAD, 0);
     return PS_STOP;
 })
 
-REGISTER_CALLBACK(CAPTURE_AFTER, ANY_EVENT, {
+REGISTER_CALLBACK(CAPTURE_AFTER, ANY_TYPE, {
     switcher_yield(self_id(self), true);
     return PS_STOP;
 })
