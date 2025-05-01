@@ -342,10 +342,12 @@ __tsan_atomic8_load(const volatile uint8_t *a, int mo)
                       .addr = (uintptr_t)a,
                       .size = (8 >> 3),
                       0};
-    capture_before(EVENT_MA_AREAD, &ma);
-    uint8_t r = __atomic_load_n(a, __ATOMIC_SEQ_CST);
-    ma.argu128   = (__uint128_t)r;
-    capture_after(EVENT_MA_AREAD, &ma);
+
+    int err    = capture_before(EVENT_MA_AREAD, &ma);
+    uint8_t r  = __atomic_load_n(a, __ATOMIC_SEQ_CST);
+    ma.argu128 = (__uint128_t)r;
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_AREAD, &ma);
     return r;
 }
 uint16_t
@@ -357,10 +359,12 @@ __tsan_atomic16_load(const volatile uint16_t *a, int mo)
                       .addr = (uintptr_t)a,
                       .size = (16 >> 3),
                       0};
-    capture_before(EVENT_MA_AREAD, &ma);
+
+    int err    = capture_before(EVENT_MA_AREAD, &ma);
     uint16_t r = __atomic_load_n(a, __ATOMIC_SEQ_CST);
-    ma.argu128   = (__uint128_t)r;
-    capture_after(EVENT_MA_AREAD, &ma);
+    ma.argu128 = (__uint128_t)r;
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_AREAD, &ma);
     return r;
 }
 uint32_t
@@ -372,10 +376,12 @@ __tsan_atomic32_load(const volatile uint32_t *a, int mo)
                       .addr = (uintptr_t)a,
                       .size = (32 >> 3),
                       0};
-    capture_before(EVENT_MA_AREAD, &ma);
+
+    int err    = capture_before(EVENT_MA_AREAD, &ma);
     uint32_t r = __atomic_load_n(a, __ATOMIC_SEQ_CST);
-    ma.argu128   = (__uint128_t)r;
-    capture_after(EVENT_MA_AREAD, &ma);
+    ma.argu128 = (__uint128_t)r;
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_AREAD, &ma);
     return r;
 }
 uint64_t
@@ -387,10 +393,12 @@ __tsan_atomic64_load(const volatile uint64_t *a, int mo)
                       .addr = (uintptr_t)a,
                       .size = (64 >> 3),
                       0};
-    capture_before(EVENT_MA_AREAD, &ma);
+
+    int err    = capture_before(EVENT_MA_AREAD, &ma);
     uint64_t r = __atomic_load_n(a, __ATOMIC_SEQ_CST);
-    ma.argu128   = (__uint128_t)r;
-    capture_after(EVENT_MA_AREAD, &ma);
+    ma.argu128 = (__uint128_t)r;
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_AREAD, &ma);
     return r;
 }
 
@@ -405,9 +413,11 @@ __tsan_atomic8_store(volatile uint8_t *a, uint8_t v, int mo)
                       .size    = (8 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_AWRITE, &ma);
+
+    int err = capture_before(EVENT_MA_AWRITE, &ma);
     __atomic_store_n(a, v, __ATOMIC_SEQ_CST);
-    capture_after(EVENT_MA_AWRITE, &ma);
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_AWRITE, &ma);
 }
 void
 __tsan_atomic16_store(volatile uint16_t *a, uint16_t v, int mo)
@@ -419,9 +429,11 @@ __tsan_atomic16_store(volatile uint16_t *a, uint16_t v, int mo)
                       .size    = (16 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_AWRITE, &ma);
+
+    int err = capture_before(EVENT_MA_AWRITE, &ma);
     __atomic_store_n(a, v, __ATOMIC_SEQ_CST);
-    capture_after(EVENT_MA_AWRITE, &ma);
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_AWRITE, &ma);
 }
 void
 __tsan_atomic32_store(volatile uint32_t *a, uint32_t v, int mo)
@@ -433,9 +445,11 @@ __tsan_atomic32_store(volatile uint32_t *a, uint32_t v, int mo)
                       .size    = (32 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_AWRITE, &ma);
+
+    int err = capture_before(EVENT_MA_AWRITE, &ma);
     __atomic_store_n(a, v, __ATOMIC_SEQ_CST);
-    capture_after(EVENT_MA_AWRITE, &ma);
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_AWRITE, &ma);
 }
 void
 __tsan_atomic64_store(volatile uint64_t *a, uint64_t v, int mo)
@@ -447,9 +461,11 @@ __tsan_atomic64_store(volatile uint64_t *a, uint64_t v, int mo)
                       .size    = (64 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_AWRITE, &ma);
+
+    int err = capture_before(EVENT_MA_AWRITE, &ma);
     __atomic_store_n(a, v, __ATOMIC_SEQ_CST);
-    capture_after(EVENT_MA_AWRITE, &ma);
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_AWRITE, &ma);
 }
 
 
@@ -464,10 +480,12 @@ __tsan_atomic8_exchange(volatile uint8_t *a, uint8_t v, int mo)
                       .size    = (8 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_XCHG, &ma);
-    uint8_t r = __atomic_exchange_n(a, v, __ATOMIC_SEQ_CST);
-    ma.argu128   = (__uint128_t)r;
-    capture_after(EVENT_MA_XCHG, &ma);
+
+    int err    = capture_before(EVENT_MA_XCHG, &ma);
+    uint8_t r  = __atomic_exchange_n(a, v, __ATOMIC_SEQ_CST);
+    ma.argu128 = (__uint128_t)r;
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_XCHG, &ma);
     return r;
 }
 uint16_t
@@ -480,10 +498,12 @@ __tsan_atomic16_exchange(volatile uint16_t *a, uint16_t v, int mo)
                       .size    = (16 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_XCHG, &ma);
+
+    int err    = capture_before(EVENT_MA_XCHG, &ma);
     uint16_t r = __atomic_exchange_n(a, v, __ATOMIC_SEQ_CST);
-    ma.argu128   = (__uint128_t)r;
-    capture_after(EVENT_MA_XCHG, &ma);
+    ma.argu128 = (__uint128_t)r;
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_XCHG, &ma);
     return r;
 }
 uint32_t
@@ -496,10 +516,12 @@ __tsan_atomic32_exchange(volatile uint32_t *a, uint32_t v, int mo)
                       .size    = (32 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_XCHG, &ma);
+
+    int err    = capture_before(EVENT_MA_XCHG, &ma);
     uint32_t r = __atomic_exchange_n(a, v, __ATOMIC_SEQ_CST);
-    ma.argu128   = (__uint128_t)r;
-    capture_after(EVENT_MA_XCHG, &ma);
+    ma.argu128 = (__uint128_t)r;
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_XCHG, &ma);
     return r;
 }
 uint64_t
@@ -512,10 +534,12 @@ __tsan_atomic64_exchange(volatile uint64_t *a, uint64_t v, int mo)
                       .size    = (64 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_XCHG, &ma);
+
+    int err    = capture_before(EVENT_MA_XCHG, &ma);
     uint64_t r = __atomic_exchange_n(a, v, __ATOMIC_SEQ_CST);
-    ma.argu128   = (__uint128_t)r;
-    capture_after(EVENT_MA_XCHG, &ma);
+    ma.argu128 = (__uint128_t)r;
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_XCHG, &ma);
     return r;
 }
 
@@ -530,10 +554,12 @@ __tsan_atomic8_fetch_add(volatile uint8_t *a, uint8_t v, int mo)
                       .size    = (8 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_RMW, &ma);
-    uint8_t r = __atomic_fetch_add(a, v, __ATOMIC_SEQ_CST);
-    ma.argu128   = (__uint128_t)r;
-    capture_after(EVENT_MA_RMW, &ma);
+
+    int err    = capture_before(EVENT_MA_RMW, &ma);
+    uint8_t r  = __atomic_fetch_add(a, v, __ATOMIC_SEQ_CST);
+    ma.argu128 = (__uint128_t)r;
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_RMW, &ma);
     return r;
 }
 uint16_t
@@ -546,10 +572,12 @@ __tsan_atomic16_fetch_add(volatile uint16_t *a, uint16_t v, int mo)
                       .size    = (16 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_RMW, &ma);
+
+    int err    = capture_before(EVENT_MA_RMW, &ma);
     uint16_t r = __atomic_fetch_add(a, v, __ATOMIC_SEQ_CST);
-    ma.argu128   = (__uint128_t)r;
-    capture_after(EVENT_MA_RMW, &ma);
+    ma.argu128 = (__uint128_t)r;
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_RMW, &ma);
     return r;
 }
 uint32_t
@@ -562,10 +590,12 @@ __tsan_atomic32_fetch_add(volatile uint32_t *a, uint32_t v, int mo)
                       .size    = (32 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_RMW, &ma);
+
+    int err    = capture_before(EVENT_MA_RMW, &ma);
     uint32_t r = __atomic_fetch_add(a, v, __ATOMIC_SEQ_CST);
-    ma.argu128   = (__uint128_t)r;
-    capture_after(EVENT_MA_RMW, &ma);
+    ma.argu128 = (__uint128_t)r;
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_RMW, &ma);
     return r;
 }
 uint64_t
@@ -578,10 +608,12 @@ __tsan_atomic64_fetch_add(volatile uint64_t *a, uint64_t v, int mo)
                       .size    = (64 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_RMW, &ma);
+
+    int err    = capture_before(EVENT_MA_RMW, &ma);
     uint64_t r = __atomic_fetch_add(a, v, __ATOMIC_SEQ_CST);
-    ma.argu128   = (__uint128_t)r;
-    capture_after(EVENT_MA_RMW, &ma);
+    ma.argu128 = (__uint128_t)r;
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_RMW, &ma);
     return r;
 }
 uint8_t
@@ -594,10 +626,12 @@ __tsan_atomic8_fetch_sub(volatile uint8_t *a, uint8_t v, int mo)
                       .size    = (8 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_RMW, &ma);
-    uint8_t r = __atomic_fetch_sub(a, v, __ATOMIC_SEQ_CST);
-    ma.argu128   = (__uint128_t)r;
-    capture_after(EVENT_MA_RMW, &ma);
+
+    int err    = capture_before(EVENT_MA_RMW, &ma);
+    uint8_t r  = __atomic_fetch_sub(a, v, __ATOMIC_SEQ_CST);
+    ma.argu128 = (__uint128_t)r;
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_RMW, &ma);
     return r;
 }
 uint16_t
@@ -610,10 +644,12 @@ __tsan_atomic16_fetch_sub(volatile uint16_t *a, uint16_t v, int mo)
                       .size    = (16 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_RMW, &ma);
+
+    int err    = capture_before(EVENT_MA_RMW, &ma);
     uint16_t r = __atomic_fetch_sub(a, v, __ATOMIC_SEQ_CST);
-    ma.argu128   = (__uint128_t)r;
-    capture_after(EVENT_MA_RMW, &ma);
+    ma.argu128 = (__uint128_t)r;
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_RMW, &ma);
     return r;
 }
 uint32_t
@@ -626,10 +662,12 @@ __tsan_atomic32_fetch_sub(volatile uint32_t *a, uint32_t v, int mo)
                       .size    = (32 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_RMW, &ma);
+
+    int err    = capture_before(EVENT_MA_RMW, &ma);
     uint32_t r = __atomic_fetch_sub(a, v, __ATOMIC_SEQ_CST);
-    ma.argu128   = (__uint128_t)r;
-    capture_after(EVENT_MA_RMW, &ma);
+    ma.argu128 = (__uint128_t)r;
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_RMW, &ma);
     return r;
 }
 uint64_t
@@ -642,10 +680,12 @@ __tsan_atomic64_fetch_sub(volatile uint64_t *a, uint64_t v, int mo)
                       .size    = (64 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_RMW, &ma);
+
+    int err    = capture_before(EVENT_MA_RMW, &ma);
     uint64_t r = __atomic_fetch_sub(a, v, __ATOMIC_SEQ_CST);
-    ma.argu128   = (__uint128_t)r;
-    capture_after(EVENT_MA_RMW, &ma);
+    ma.argu128 = (__uint128_t)r;
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_RMW, &ma);
     return r;
 }
 uint8_t
@@ -658,10 +698,12 @@ __tsan_atomic8_fetch_and(volatile uint8_t *a, uint8_t v, int mo)
                       .size    = (8 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_RMW, &ma);
-    uint8_t r = __atomic_fetch_and(a, v, __ATOMIC_SEQ_CST);
-    ma.argu128   = (__uint128_t)r;
-    capture_after(EVENT_MA_RMW, &ma);
+
+    int err    = capture_before(EVENT_MA_RMW, &ma);
+    uint8_t r  = __atomic_fetch_and(a, v, __ATOMIC_SEQ_CST);
+    ma.argu128 = (__uint128_t)r;
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_RMW, &ma);
     return r;
 }
 uint16_t
@@ -674,10 +716,12 @@ __tsan_atomic16_fetch_and(volatile uint16_t *a, uint16_t v, int mo)
                       .size    = (16 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_RMW, &ma);
+
+    int err    = capture_before(EVENT_MA_RMW, &ma);
     uint16_t r = __atomic_fetch_and(a, v, __ATOMIC_SEQ_CST);
-    ma.argu128   = (__uint128_t)r;
-    capture_after(EVENT_MA_RMW, &ma);
+    ma.argu128 = (__uint128_t)r;
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_RMW, &ma);
     return r;
 }
 uint32_t
@@ -690,10 +734,12 @@ __tsan_atomic32_fetch_and(volatile uint32_t *a, uint32_t v, int mo)
                       .size    = (32 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_RMW, &ma);
+
+    int err    = capture_before(EVENT_MA_RMW, &ma);
     uint32_t r = __atomic_fetch_and(a, v, __ATOMIC_SEQ_CST);
-    ma.argu128   = (__uint128_t)r;
-    capture_after(EVENT_MA_RMW, &ma);
+    ma.argu128 = (__uint128_t)r;
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_RMW, &ma);
     return r;
 }
 uint64_t
@@ -706,10 +752,12 @@ __tsan_atomic64_fetch_and(volatile uint64_t *a, uint64_t v, int mo)
                       .size    = (64 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_RMW, &ma);
+
+    int err    = capture_before(EVENT_MA_RMW, &ma);
     uint64_t r = __atomic_fetch_and(a, v, __ATOMIC_SEQ_CST);
-    ma.argu128   = (__uint128_t)r;
-    capture_after(EVENT_MA_RMW, &ma);
+    ma.argu128 = (__uint128_t)r;
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_RMW, &ma);
     return r;
 }
 uint8_t
@@ -722,10 +770,12 @@ __tsan_atomic8_fetch_or(volatile uint8_t *a, uint8_t v, int mo)
                       .size    = (8 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_RMW, &ma);
-    uint8_t r = __atomic_fetch_or(a, v, __ATOMIC_SEQ_CST);
-    ma.argu128   = (__uint128_t)r;
-    capture_after(EVENT_MA_RMW, &ma);
+
+    int err    = capture_before(EVENT_MA_RMW, &ma);
+    uint8_t r  = __atomic_fetch_or(a, v, __ATOMIC_SEQ_CST);
+    ma.argu128 = (__uint128_t)r;
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_RMW, &ma);
     return r;
 }
 uint16_t
@@ -738,10 +788,12 @@ __tsan_atomic16_fetch_or(volatile uint16_t *a, uint16_t v, int mo)
                       .size    = (16 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_RMW, &ma);
+
+    int err    = capture_before(EVENT_MA_RMW, &ma);
     uint16_t r = __atomic_fetch_or(a, v, __ATOMIC_SEQ_CST);
-    ma.argu128   = (__uint128_t)r;
-    capture_after(EVENT_MA_RMW, &ma);
+    ma.argu128 = (__uint128_t)r;
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_RMW, &ma);
     return r;
 }
 uint32_t
@@ -754,10 +806,12 @@ __tsan_atomic32_fetch_or(volatile uint32_t *a, uint32_t v, int mo)
                       .size    = (32 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_RMW, &ma);
+
+    int err    = capture_before(EVENT_MA_RMW, &ma);
     uint32_t r = __atomic_fetch_or(a, v, __ATOMIC_SEQ_CST);
-    ma.argu128   = (__uint128_t)r;
-    capture_after(EVENT_MA_RMW, &ma);
+    ma.argu128 = (__uint128_t)r;
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_RMW, &ma);
     return r;
 }
 uint64_t
@@ -770,10 +824,12 @@ __tsan_atomic64_fetch_or(volatile uint64_t *a, uint64_t v, int mo)
                       .size    = (64 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_RMW, &ma);
+
+    int err    = capture_before(EVENT_MA_RMW, &ma);
     uint64_t r = __atomic_fetch_or(a, v, __ATOMIC_SEQ_CST);
-    ma.argu128   = (__uint128_t)r;
-    capture_after(EVENT_MA_RMW, &ma);
+    ma.argu128 = (__uint128_t)r;
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_RMW, &ma);
     return r;
 }
 uint8_t
@@ -786,10 +842,12 @@ __tsan_atomic8_fetch_xor(volatile uint8_t *a, uint8_t v, int mo)
                       .size    = (8 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_RMW, &ma);
-    uint8_t r = __atomic_fetch_xor(a, v, __ATOMIC_SEQ_CST);
-    ma.argu128   = (__uint128_t)r;
-    capture_after(EVENT_MA_RMW, &ma);
+
+    int err    = capture_before(EVENT_MA_RMW, &ma);
+    uint8_t r  = __atomic_fetch_xor(a, v, __ATOMIC_SEQ_CST);
+    ma.argu128 = (__uint128_t)r;
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_RMW, &ma);
     return r;
 }
 uint16_t
@@ -802,10 +860,12 @@ __tsan_atomic16_fetch_xor(volatile uint16_t *a, uint16_t v, int mo)
                       .size    = (16 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_RMW, &ma);
+
+    int err    = capture_before(EVENT_MA_RMW, &ma);
     uint16_t r = __atomic_fetch_xor(a, v, __ATOMIC_SEQ_CST);
-    ma.argu128   = (__uint128_t)r;
-    capture_after(EVENT_MA_RMW, &ma);
+    ma.argu128 = (__uint128_t)r;
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_RMW, &ma);
     return r;
 }
 uint32_t
@@ -818,10 +878,12 @@ __tsan_atomic32_fetch_xor(volatile uint32_t *a, uint32_t v, int mo)
                       .size    = (32 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_RMW, &ma);
+
+    int err    = capture_before(EVENT_MA_RMW, &ma);
     uint32_t r = __atomic_fetch_xor(a, v, __ATOMIC_SEQ_CST);
-    ma.argu128   = (__uint128_t)r;
-    capture_after(EVENT_MA_RMW, &ma);
+    ma.argu128 = (__uint128_t)r;
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_RMW, &ma);
     return r;
 }
 uint64_t
@@ -834,10 +896,12 @@ __tsan_atomic64_fetch_xor(volatile uint64_t *a, uint64_t v, int mo)
                       .size    = (64 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_RMW, &ma);
+
+    int err    = capture_before(EVENT_MA_RMW, &ma);
     uint64_t r = __atomic_fetch_xor(a, v, __ATOMIC_SEQ_CST);
-    ma.argu128   = (__uint128_t)r;
-    capture_after(EVENT_MA_RMW, &ma);
+    ma.argu128 = (__uint128_t)r;
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_RMW, &ma);
     return r;
 }
 uint8_t
@@ -850,10 +914,12 @@ __tsan_atomic8_fetch_nand(volatile uint8_t *a, uint8_t v, int mo)
                       .size    = (8 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_RMW, &ma);
-    uint8_t r = __atomic_fetch_nand(a, v, __ATOMIC_SEQ_CST);
-    ma.argu128   = (__uint128_t)r;
-    capture_after(EVENT_MA_RMW, &ma);
+
+    int err    = capture_before(EVENT_MA_RMW, &ma);
+    uint8_t r  = __atomic_fetch_nand(a, v, __ATOMIC_SEQ_CST);
+    ma.argu128 = (__uint128_t)r;
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_RMW, &ma);
     return r;
 }
 uint16_t
@@ -866,10 +932,12 @@ __tsan_atomic16_fetch_nand(volatile uint16_t *a, uint16_t v, int mo)
                       .size    = (16 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_RMW, &ma);
+
+    int err    = capture_before(EVENT_MA_RMW, &ma);
     uint16_t r = __atomic_fetch_nand(a, v, __ATOMIC_SEQ_CST);
-    ma.argu128   = (__uint128_t)r;
-    capture_after(EVENT_MA_RMW, &ma);
+    ma.argu128 = (__uint128_t)r;
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_RMW, &ma);
     return r;
 }
 uint32_t
@@ -882,10 +950,12 @@ __tsan_atomic32_fetch_nand(volatile uint32_t *a, uint32_t v, int mo)
                       .size    = (32 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_RMW, &ma);
+
+    int err    = capture_before(EVENT_MA_RMW, &ma);
     uint32_t r = __atomic_fetch_nand(a, v, __ATOMIC_SEQ_CST);
-    ma.argu128   = (__uint128_t)r;
-    capture_after(EVENT_MA_RMW, &ma);
+    ma.argu128 = (__uint128_t)r;
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_RMW, &ma);
     return r;
 }
 uint64_t
@@ -898,10 +968,12 @@ __tsan_atomic64_fetch_nand(volatile uint64_t *a, uint64_t v, int mo)
                       .size    = (64 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_RMW, &ma);
+
+    int err    = capture_before(EVENT_MA_RMW, &ma);
     uint64_t r = __atomic_fetch_nand(a, v, __ATOMIC_SEQ_CST);
-    ma.argu128   = (__uint128_t)r;
-    capture_after(EVENT_MA_RMW, &ma);
+    ma.argu128 = (__uint128_t)r;
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_RMW, &ma);
     return r;
 }
 
@@ -917,17 +989,19 @@ __tsan_atomic8_compare_exchange_strong(volatile uint8_t *a, uint8_t *c,
                       .size    = (8 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_CMPXCHG, &ma);
-    int r = __atomic_compare_exchange_n(a, c, v, 0, __ATOMIC_SEQ_CST,
-                                        __ATOMIC_SEQ_CST);
+
+    int err = capture_before(EVENT_MA_CMPXCHG, &ma);
+    int r   = __atomic_compare_exchange_n(a, c, v, 0, __ATOMIC_SEQ_CST,
+                                          __ATOMIC_SEQ_CST);
     assert(r == 0 || r == 1);
     ma.failed = r == 0;
-    capture_after(EVENT_MA_CMPXCHG, &ma);
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_CMPXCHG, &ma);
     return r;
 }
 int
 __tsan_atomic16_compare_exchange_strong(volatile uint16_t *a, uint16_t *c,
-                                       uint16_t v, int mo)
+                                        uint16_t v, int mo)
 {
     memaccess_t ma = {.pc      = INTERPOSE_PC,
                       .func    = "atomic16_compare_exchange_strong",
@@ -935,17 +1009,19 @@ __tsan_atomic16_compare_exchange_strong(volatile uint16_t *a, uint16_t *c,
                       .size    = (16 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_CMPXCHG, &ma);
-    int r = __atomic_compare_exchange_n(a, c, v, 0, __ATOMIC_SEQ_CST,
-                                        __ATOMIC_SEQ_CST);
+
+    int err = capture_before(EVENT_MA_CMPXCHG, &ma);
+    int r   = __atomic_compare_exchange_n(a, c, v, 0, __ATOMIC_SEQ_CST,
+                                          __ATOMIC_SEQ_CST);
     assert(r == 0 || r == 1);
     ma.failed = r == 0;
-    capture_after(EVENT_MA_CMPXCHG, &ma);
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_CMPXCHG, &ma);
     return r;
 }
 int
 __tsan_atomic32_compare_exchange_strong(volatile uint32_t *a, uint32_t *c,
-                                       uint32_t v, int mo)
+                                        uint32_t v, int mo)
 {
     memaccess_t ma = {.pc      = INTERPOSE_PC,
                       .func    = "atomic32_compare_exchange_strong",
@@ -953,17 +1029,19 @@ __tsan_atomic32_compare_exchange_strong(volatile uint32_t *a, uint32_t *c,
                       .size    = (32 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_CMPXCHG, &ma);
-    int r = __atomic_compare_exchange_n(a, c, v, 0, __ATOMIC_SEQ_CST,
-                                        __ATOMIC_SEQ_CST);
+
+    int err = capture_before(EVENT_MA_CMPXCHG, &ma);
+    int r   = __atomic_compare_exchange_n(a, c, v, 0, __ATOMIC_SEQ_CST,
+                                          __ATOMIC_SEQ_CST);
     assert(r == 0 || r == 1);
     ma.failed = r == 0;
-    capture_after(EVENT_MA_CMPXCHG, &ma);
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_CMPXCHG, &ma);
     return r;
 }
 int
 __tsan_atomic64_compare_exchange_strong(volatile uint64_t *a, uint64_t *c,
-                                       uint64_t v, int mo)
+                                        uint64_t v, int mo)
 {
     memaccess_t ma = {.pc      = INTERPOSE_PC,
                       .func    = "atomic64_compare_exchange_strong",
@@ -971,17 +1049,19 @@ __tsan_atomic64_compare_exchange_strong(volatile uint64_t *a, uint64_t *c,
                       .size    = (64 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_CMPXCHG, &ma);
-    int r = __atomic_compare_exchange_n(a, c, v, 0, __ATOMIC_SEQ_CST,
-                                        __ATOMIC_SEQ_CST);
+
+    int err = capture_before(EVENT_MA_CMPXCHG, &ma);
+    int r   = __atomic_compare_exchange_n(a, c, v, 0, __ATOMIC_SEQ_CST,
+                                          __ATOMIC_SEQ_CST);
     assert(r == 0 || r == 1);
     ma.failed = r == 0;
-    capture_after(EVENT_MA_CMPXCHG, &ma);
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_CMPXCHG, &ma);
     return r;
 }
 int
-__tsan_atomic8_compare_exchange_weak(volatile uint8_t *a, uint8_t *c,
-                                       uint8_t v, int mo)
+__tsan_atomic8_compare_exchange_weak(volatile uint8_t *a, uint8_t *c, uint8_t v,
+                                     int mo)
 {
     memaccess_t ma = {.pc      = INTERPOSE_PC,
                       .func    = "atomic8_compare_exchange_weak",
@@ -989,17 +1069,19 @@ __tsan_atomic8_compare_exchange_weak(volatile uint8_t *a, uint8_t *c,
                       .size    = (8 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_CMPXCHG, &ma);
-    int r = __atomic_compare_exchange_n(a, c, v, 1, __ATOMIC_SEQ_CST,
-                                        __ATOMIC_SEQ_CST);
+
+    int err = capture_before(EVENT_MA_CMPXCHG, &ma);
+    int r   = __atomic_compare_exchange_n(a, c, v, 1, __ATOMIC_SEQ_CST,
+                                          __ATOMIC_SEQ_CST);
     assert(r == 0 || r == 1);
     ma.failed = r == 0;
-    capture_after(EVENT_MA_CMPXCHG, &ma);
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_CMPXCHG, &ma);
     return r;
 }
 int
 __tsan_atomic16_compare_exchange_weak(volatile uint16_t *a, uint16_t *c,
-                                       uint16_t v, int mo)
+                                      uint16_t v, int mo)
 {
     memaccess_t ma = {.pc      = INTERPOSE_PC,
                       .func    = "atomic16_compare_exchange_weak",
@@ -1007,17 +1089,19 @@ __tsan_atomic16_compare_exchange_weak(volatile uint16_t *a, uint16_t *c,
                       .size    = (16 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_CMPXCHG, &ma);
-    int r = __atomic_compare_exchange_n(a, c, v, 1, __ATOMIC_SEQ_CST,
-                                        __ATOMIC_SEQ_CST);
+
+    int err = capture_before(EVENT_MA_CMPXCHG, &ma);
+    int r   = __atomic_compare_exchange_n(a, c, v, 1, __ATOMIC_SEQ_CST,
+                                          __ATOMIC_SEQ_CST);
     assert(r == 0 || r == 1);
     ma.failed = r == 0;
-    capture_after(EVENT_MA_CMPXCHG, &ma);
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_CMPXCHG, &ma);
     return r;
 }
 int
 __tsan_atomic32_compare_exchange_weak(volatile uint32_t *a, uint32_t *c,
-                                       uint32_t v, int mo)
+                                      uint32_t v, int mo)
 {
     memaccess_t ma = {.pc      = INTERPOSE_PC,
                       .func    = "atomic32_compare_exchange_weak",
@@ -1025,17 +1109,19 @@ __tsan_atomic32_compare_exchange_weak(volatile uint32_t *a, uint32_t *c,
                       .size    = (32 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_CMPXCHG, &ma);
-    int r = __atomic_compare_exchange_n(a, c, v, 1, __ATOMIC_SEQ_CST,
-                                        __ATOMIC_SEQ_CST);
+
+    int err = capture_before(EVENT_MA_CMPXCHG, &ma);
+    int r   = __atomic_compare_exchange_n(a, c, v, 1, __ATOMIC_SEQ_CST,
+                                          __ATOMIC_SEQ_CST);
     assert(r == 0 || r == 1);
     ma.failed = r == 0;
-    capture_after(EVENT_MA_CMPXCHG, &ma);
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_CMPXCHG, &ma);
     return r;
 }
 int
 __tsan_atomic64_compare_exchange_weak(volatile uint64_t *a, uint64_t *c,
-                                       uint64_t v, int mo)
+                                      uint64_t v, int mo)
 {
     memaccess_t ma = {.pc      = INTERPOSE_PC,
                       .func    = "atomic64_compare_exchange_weak",
@@ -1043,19 +1129,21 @@ __tsan_atomic64_compare_exchange_weak(volatile uint64_t *a, uint64_t *c,
                       .size    = (64 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_CMPXCHG, &ma);
-    int r = __atomic_compare_exchange_n(a, c, v, 1, __ATOMIC_SEQ_CST,
-                                        __ATOMIC_SEQ_CST);
+
+    int err = capture_before(EVENT_MA_CMPXCHG, &ma);
+    int r   = __atomic_compare_exchange_n(a, c, v, 1, __ATOMIC_SEQ_CST,
+                                          __ATOMIC_SEQ_CST);
     assert(r == 0 || r == 1);
     ma.failed = r == 0;
-    capture_after(EVENT_MA_CMPXCHG, &ma);
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_CMPXCHG, &ma);
     return r;
 }
 
 /* compare_exchange_val */
 uint8_t
-__tsan_atomic8_compare_exchange_val(volatile uint8_t *a, uint8_t c,
-                                       uint8_t v, int mo)
+__tsan_atomic8_compare_exchange_val(volatile uint8_t *a, uint8_t c, uint8_t v,
+                                    int mo)
 {
     memaccess_t ma = {.pc      = INTERPOSE_PC,
                       .func    = "atomic8_compare_exchange_val",
@@ -1063,17 +1151,19 @@ __tsan_atomic8_compare_exchange_val(volatile uint8_t *a, uint8_t c,
                       .size    = (8 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_CMPXCHG, &ma);
-    int r = __atomic_compare_exchange_n(a, &c, v, 0, __ATOMIC_SEQ_CST,
-                                        __ATOMIC_SEQ_CST);
+
+    int err = capture_before(EVENT_MA_CMPXCHG, &ma);
+    int r   = __atomic_compare_exchange_n(a, &c, v, 0, __ATOMIC_SEQ_CST,
+                                          __ATOMIC_SEQ_CST);
     assert(r == 0 || r == 1);
     ma.failed = r == 0;
-    capture_after(EVENT_MA_CMPXCHG, &ma);
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_CMPXCHG, &ma);
     return c;
 }
 uint16_t
 __tsan_atomic16_compare_exchange_val(volatile uint16_t *a, uint16_t c,
-                                       uint16_t v, int mo)
+                                     uint16_t v, int mo)
 {
     memaccess_t ma = {.pc      = INTERPOSE_PC,
                       .func    = "atomic16_compare_exchange_val",
@@ -1081,17 +1171,19 @@ __tsan_atomic16_compare_exchange_val(volatile uint16_t *a, uint16_t c,
                       .size    = (16 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_CMPXCHG, &ma);
-    int r = __atomic_compare_exchange_n(a, &c, v, 0, __ATOMIC_SEQ_CST,
-                                        __ATOMIC_SEQ_CST);
+
+    int err = capture_before(EVENT_MA_CMPXCHG, &ma);
+    int r   = __atomic_compare_exchange_n(a, &c, v, 0, __ATOMIC_SEQ_CST,
+                                          __ATOMIC_SEQ_CST);
     assert(r == 0 || r == 1);
     ma.failed = r == 0;
-    capture_after(EVENT_MA_CMPXCHG, &ma);
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_CMPXCHG, &ma);
     return c;
 }
 uint32_t
 __tsan_atomic32_compare_exchange_val(volatile uint32_t *a, uint32_t c,
-                                       uint32_t v, int mo)
+                                     uint32_t v, int mo)
 {
     memaccess_t ma = {.pc      = INTERPOSE_PC,
                       .func    = "atomic32_compare_exchange_val",
@@ -1099,17 +1191,19 @@ __tsan_atomic32_compare_exchange_val(volatile uint32_t *a, uint32_t c,
                       .size    = (32 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_CMPXCHG, &ma);
-    int r = __atomic_compare_exchange_n(a, &c, v, 0, __ATOMIC_SEQ_CST,
-                                        __ATOMIC_SEQ_CST);
+
+    int err = capture_before(EVENT_MA_CMPXCHG, &ma);
+    int r   = __atomic_compare_exchange_n(a, &c, v, 0, __ATOMIC_SEQ_CST,
+                                          __ATOMIC_SEQ_CST);
     assert(r == 0 || r == 1);
     ma.failed = r == 0;
-    capture_after(EVENT_MA_CMPXCHG, &ma);
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_CMPXCHG, &ma);
     return c;
 }
 uint64_t
 __tsan_atomic64_compare_exchange_val(volatile uint64_t *a, uint64_t c,
-                                       uint64_t v, int mo)
+                                     uint64_t v, int mo)
 {
     memaccess_t ma = {.pc      = INTERPOSE_PC,
                       .func    = "atomic64_compare_exchange_val",
@@ -1117,12 +1211,14 @@ __tsan_atomic64_compare_exchange_val(volatile uint64_t *a, uint64_t c,
                       .size    = (64 >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EVENT_MA_CMPXCHG, &ma);
-    int r = __atomic_compare_exchange_n(a, &c, v, 0, __ATOMIC_SEQ_CST,
-                                        __ATOMIC_SEQ_CST);
+
+    int err = capture_before(EVENT_MA_CMPXCHG, &ma);
+    int r   = __atomic_compare_exchange_n(a, &c, v, 0, __ATOMIC_SEQ_CST,
+                                          __ATOMIC_SEQ_CST);
     assert(r == 0 || r == 1);
     ma.failed = r == 0;
-    capture_after(EVENT_MA_CMPXCHG, &ma);
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_CMPXCHG, &ma);
     return c;
 }
 
@@ -1131,16 +1227,20 @@ void
 __tsan_atomic_thread_fence(int mo)
 {
     (void)mo;
-    capture_before(EVENT_MA_FENCE, 0);
+
+    int err = capture_before(EVENT_MA_FENCE, 0);
     __atomic_thread_fence(__ATOMIC_SEQ_CST);
-    capture_after(EVENT_MA_FENCE, 0);
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_FENCE, 0);
 }
 
 void
 __tsan_atomic_signal_fence(int mo)
 {
     (void)mo;
-    capture_before(EVENT_MA_FENCE, 0);
+
+    int err = capture_before(EVENT_MA_FENCE, 0);
     __atomic_signal_fence(__ATOMIC_SEQ_CST);
-    capture_after(EVENT_MA_FENCE, 0);
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_FENCE, 0);
 }

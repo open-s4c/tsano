@@ -24,7 +24,8 @@ void *
 run1(void *_)
 {
     printf("here\n");
-    capture_before(EVENT_MA_AREAD, 0);
+
+    int err = capture_before(EVENT_MA_AREAD, 0);
     if (vatomic32_read(&ready) == 1)
         assert(data == 1);
     printf("there\n");

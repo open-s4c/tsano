@@ -52,9 +52,11 @@ INTERPOSE(int, pthread_create, pthread_t *thread, const pthread_attr_t *attr,
 
     struct pthread_create_event ev = {.thread = thread, .pc = INTERPOSE_PC};
 
-    capture_before(EVENT_THREAD_CREATE, &ev);
-    ev.ret = REAL(pthread_create, thread, attr, _trampoline, t);
-    capture_after(EVENT_THREAD_CREATE, &ev);
+
+    int err = capture_before(EVENT_THREAD_CREATE, &ev);
+    ev.ret  = REAL(pthread_create, thread, attr, _trampoline, t);
+    if (err != PS_DROP)
+        capture_after(EVENT_THREAD_CREATE, &ev);
     return ev.ret;
 }
 
@@ -62,9 +64,11 @@ INTERPOSE(int, pthread_join, pthread_t thread, void **ptr)
 {
     struct pthread_join_event ev = {.thread = thread, .pc = INTERPOSE_PC};
 
-    capture_before(EVENT_THREAD_JOIN, &ev);
-    ev.ret = REAL(pthread_join, thread, ptr);
-    capture_after(EVENT_THREAD_JOIN, &ev);
+
+    int err = capture_before(EVENT_THREAD_JOIN, &ev);
+    ev.ret  = REAL(pthread_join, thread, ptr);
+    if (err != PS_DROP)
+        capture_after(EVENT_THREAD_JOIN, &ev);
 
     return ev.ret;
 }

@@ -99,9 +99,10 @@ _ps_publish_do(token_t token, const void *arg, self_t *self)
         struct sub *subs = &ev->subs[idx];
 
         // now we call the callback and abort the chain if the subscriber
-        // "censors" the event by returning false.
-        if (!subs->cb(token, arg, self))
-            return PS_SUCCESS;
+        // "censors" the event by returning PS_STOP.
+        int err = subs->cb(token, arg, self);
+        if (err != PS_SUCCESS)
+            return err;
 
         // we increment token index to mark current subscriber in case
         // subscriber wants to republish to the remainder of this chain.
@@ -129,8 +130,7 @@ _ps_publish(token_t token, const void *arg, self_t *self)
 
 #ifdef BINGO_PS_DIRECT_SELF
     assert(index_from(token) == 0);
-    _self_handle(token, arg, self);
-    return PS_SUCCESS;
+    return _self_handle(token, arg, self);
 #else
     return _ps_publish_do(token, arg, self);
 #endif

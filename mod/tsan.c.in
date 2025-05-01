@@ -20,7 +20,7 @@ BINGO_MODULE_INIT()
 #define _tmpl_map(...)
 #define _tmpl_begin(...)
 #define _tmpl_end(...)
-#define __atomic_fetch_OP __atomic_exchange_n
+#define __atomic_fetch_Op __atomic_exchange_n
 #define uintBITS_t        int
 #define PARAM_SUF         0
 #define EV_TYPE(...)      0
@@ -131,10 +131,12 @@ __tsan_atomicBITS_load(const volatile uintBITS_t *a, int mo)
                       .addr = (uintptr_t)a,
                       .size = (BITS >> 3),
                       0};
-    capture_before(EV_TYPE(AREAD), &ma);
+
+    int err      = capture_before(EV_TYPE(AREAD), &ma);
     uintBITS_t r = __atomic_load_n(a, __ATOMIC_SEQ_CST);
     ma.argu128   = (__uint128_t)r;
-    capture_after(EV_TYPE(AREAD), &ma);
+    if (err != PS_DROP)
+        capture_after(EV_TYPE(AREAD), &ma);
     return r;
 }
 _tmpl_end();
@@ -151,9 +153,11 @@ __tsan_atomicBITS_store(volatile uintBITS_t *a, uintBITS_t v, int mo)
                       .size    = (BITS >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EV_TYPE(AWRITE), &ma);
+
+    int err = capture_before(EV_TYPE(AWRITE), &ma);
     __atomic_store_n(a, v, __ATOMIC_SEQ_CST);
-    capture_after(EV_TYPE(AWRITE), &ma);
+    if (err != PS_DROP)
+        capture_after(EV_TYPE(AWRITE), &ma);
 }
 _tmpl_end();
 
@@ -170,30 +174,34 @@ __tsan_atomicBITS_exchange(volatile uintBITS_t *a, uintBITS_t v, int mo)
                       .size    = (BITS >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EV_TYPE(XCHG), &ma);
+
+    int err      = capture_before(EV_TYPE(XCHG), &ma);
     uintBITS_t r = __atomic_exchange_n(a, v, __ATOMIC_SEQ_CST);
     ma.argu128   = (__uint128_t)r;
-    capture_after(EV_TYPE(XCHG), &ma);
+    if (err != PS_DROP)
+        capture_after(EV_TYPE(XCHG), &ma);
     return r;
 }
 _tmpl_end();
 
 /* fetch_RMW */
-_tmpl_begin(OP = [[add; sub; and; or ; xor; nand]], BITS = [[8; 16; 32; 64]]);
+_tmpl_begin(Op = [[add; sub; and; or ; xor; nand]], BITS = [[8; 16; 32; 64]]);
 uintBITS_t
-__tsan_atomicBITS_fetch_OP(volatile uintBITS_t *a, uintBITS_t v, int mo)
+__tsan_atomicBITS_fetch_Op(volatile uintBITS_t *a, uintBITS_t v, int mo)
 {
     (void)mo;
     memaccess_t ma = {.pc      = INTERPOSE_PC,
-                      .func    = "atomicBITS_fetch_OP",
+                      .func    = "atomicBITS_fetch_Op",
                       .addr    = (uintptr_t)a,
                       .size    = (BITS >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EV_TYPE(RMW), &ma);
-    uintBITS_t r = __atomic_fetch_OP(a, v, __ATOMIC_SEQ_CST);
+
+    int err      = capture_before(EV_TYPE(RMW), &ma);
+    uintBITS_t r = __atomic_fetch_Op(a, v, __ATOMIC_SEQ_CST);
     ma.argu128   = (__uint128_t)r;
-    capture_after(EV_TYPE(RMW), &ma);
+    if (err != PS_DROP)
+        capture_after(EV_TYPE(RMW), &ma);
     return r;
 }
 _tmpl_end();
@@ -211,12 +219,14 @@ __tsan_atomicBITS_compare_exchange_SUF(volatile uintBITS_t *a, uintBITS_t *c,
                       .size    = (BITS >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EV_TYPE(CMPXCHG), &ma);
-    int r = __atomic_compare_exchange_n(a, c, v, PARAM_SUF, __ATOMIC_SEQ_CST,
-                                        __ATOMIC_SEQ_CST);
+
+    int err = capture_before(EV_TYPE(CMPXCHG), &ma);
+    int r   = __atomic_compare_exchange_n(a, c, v, PARAM_SUF, __ATOMIC_SEQ_CST,
+                                          __ATOMIC_SEQ_CST);
     assert(r == 0 || r == 1);
     ma.failed = r == 0;
-    capture_after(EV_TYPE(CMPXCHG), &ma);
+    if (err != PS_DROP)
+        capture_after(EV_TYPE(CMPXCHG), &ma);
     return r;
 }
 _tmpl_end();
@@ -233,12 +243,14 @@ __tsan_atomicBITS_compare_exchange_val(volatile uintBITS_t *a, uintBITS_t c,
                       .size    = (BITS >> 3),
                       .argu128 = (__uint128_t)v,
                       0};
-    capture_before(EV_TYPE(CMPXCHG), &ma);
-    int r = __atomic_compare_exchange_n(a, &c, v, 0, __ATOMIC_SEQ_CST,
-                                        __ATOMIC_SEQ_CST);
+
+    int err = capture_before(EV_TYPE(CMPXCHG), &ma);
+    int r   = __atomic_compare_exchange_n(a, &c, v, 0, __ATOMIC_SEQ_CST,
+                                          __ATOMIC_SEQ_CST);
     assert(r == 0 || r == 1);
     ma.failed = r == 0;
-    capture_after(EV_TYPE(CMPXCHG), &ma);
+    if (err != PS_DROP)
+        capture_after(EV_TYPE(CMPXCHG), &ma);
     return c;
 }
 _tmpl_end();
@@ -248,16 +260,20 @@ void
 __tsan_atomic_thread_fence(int mo)
 {
     (void)mo;
-    capture_before(EVENT_MA_FENCE, 0);
+
+    int err = capture_before(EVENT_MA_FENCE, 0);
     __atomic_thread_fence(__ATOMIC_SEQ_CST);
-    capture_after(EVENT_MA_FENCE, 0);
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_FENCE, 0);
 }
 
 void
 __tsan_atomic_signal_fence(int mo)
 {
     (void)mo;
-    capture_before(EVENT_MA_FENCE, 0);
+
+    int err = capture_before(EVENT_MA_FENCE, 0);
     __atomic_signal_fence(__ATOMIC_SEQ_CST);
-    capture_after(EVENT_MA_FENCE, 0);
+    if (err != PS_DROP)
+        capture_after(EVENT_MA_FENCE, 0);
 }

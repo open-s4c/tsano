@@ -298,7 +298,7 @@ self_tls(self_t *self, const void *global, size_t size)
 }
 
 // -----------------------------------------------------------------------------
-// self init, fini, etc
+// self destructor
 // -----------------------------------------------------------------------------
 
 static void
@@ -319,25 +319,6 @@ _self_destruct(void *arg)
     mempool_free(arg);
 }
 
-BINGO_HIDE void
-_self_init()
-{
-    // First, prepare the map for tls
-    _thrmap_init();
-
-    // construct tls for main thread, but do not publish any event yet. On the
-    // first event of the main thread (handled by self's callback), we piggyback
-    // a EVENT_THREAD_INIT for the main thread.
-    (void)_thrdata_new();
-}
-
-BINGO_HIDE void
-_self_fini()
-{
-    capture_event(EVENT_THREAD_FINI, 0);
-    _thrmap_fini();
-}
-
 // -----------------------------------------------------------------------------
 // pubsub handler
 // -----------------------------------------------------------------------------
@@ -352,29 +333,33 @@ _self_guard(token_t token, const void *arg, thrdata_t *td)
         abort();
 }
 
-static void
+static int
 _self_handle_before(token_t token, const void *arg, self_t *s)
 {
     thrdata_t *td = (s ? (thrdata_t *)s : _thrdata_get());
     if (unlikely(td == NULL))
-        return;
+        return PS_DROP;
 
     if (td->guard++ == 0)
         _self_guard(token, arg, td);
+
+    return PS_STOP;
 }
 
-static void
+static int
 _self_handle_after(token_t token, const void *arg, self_t *s)
 {
     thrdata_t *td = (s ? (thrdata_t *)s : _thrdata_get());
     if (unlikely(td == NULL))
-        return;
+        return PS_DROP;
 
     if (td->guard-- == 1)
         _self_guard(token, arg, td);
+
+    return PS_STOP;
 }
 
-static void
+static int
 _self_handle_event(token_t token, const void *arg, self_t *s)
 {
     thrdata_t *td = (s ? (thrdata_t *)s : _thrdata_get());
@@ -384,7 +369,7 @@ _self_handle_event(token_t token, const void *arg, self_t *s)
             td = _thrdata_new();
 
     if (unlikely(td == NULL))
-        return;
+        return PS_DROP;
 
     if (unlikely(td->tid == MAIN_THREAD && td->count == 0)) {
         // inform remainder of chain that main thread started
@@ -403,38 +388,49 @@ _self_handle_event(token_t token, const void *arg, self_t *s)
     // Destruct thread data
     if (unlikely(event_from(token) == EVENT_THREAD_FINI))
         _self_destruct(td);
+
+    return PS_STOP;
 }
 
-BINGO_HIDE void
+BINGO_HIDE int
 _self_handle(token_t token, const void *arg, self_t *self)
 {
     switch (chain_from(token)) {
         case CAPTURE_BEFORE:
-            _self_handle_before(token, arg, self);
-            break;
+            return _self_handle_before(token, arg, self);
         case CAPTURE_AFTER:
-            _self_handle_after(token, arg, self);
-            break;
+            return _self_handle_after(token, arg, self);
         case CAPTURE_EVENT:
-            _self_handle_event(token, arg, self);
-            break;
+            return _self_handle_event(token, arg, self);
     }
+    return PS_INVALID;
 }
 
-// Filter after events guarding from reentrie
-REGISTER_CALLBACK(CAPTURE_BEFORE, ANY_EVENT, {
-    _self_handle_before(token, arg, self);
-    return false;
-})
+// -----------------------------------------------------------------------------
+// init, fini and registration
+// -----------------------------------------------------------------------------
 
-// Filter before events guarding from reentries
-REGISTER_CALLBACK(CAPTURE_AFTER, ANY_EVENT, {
-    _self_handle_after(token, arg, self);
-    return false;
-})
+BINGO_HIDE void
+_self_init()
+{
+    // First, prepare the map for TLS
+    _thrmap_init();
 
-// Filter events guarding from reentries
-REGISTER_CALLBACK(CAPTURE_EVENT, ANY_EVENT, {
-    _self_handle_event(token, arg, self);
-    return false;
-})
+    // Construct TLS for main thread, but do not publish any event yet. On the
+    // first event of the main thread (handled by self's callback), we piggyback
+    // a EVENT_THREAD_INIT for the main thread.
+    (void)_thrdata_new();
+
+    // Subscribe callbacks and abort on failure
+    if (0 != ps_subscribe(CAPTURE_BEFORE, ANY_EVENT, _self_handle_before) ||
+        0 != ps_subscribe(CAPTURE_AFTER, ANY_EVENT, _self_handle_after) ||
+        0 != ps_subscribe(CAPTURE_EVENT, ANY_EVENT, _self_handle_event))
+        exit(EXIT_FAILURE);
+}
+
+BINGO_HIDE void
+_self_fini()
+{
+    capture_event(EVENT_THREAD_FINI, 0);
+    _thrmap_fini();
+}

@@ -20,17 +20,17 @@ REGISTER_CALLBACK(CAPTURE_EVENT, ANY_EVENT, {
         default:
             break;
     }
-    return false;
+    return PS_STOP;
 })
 
 REGISTER_CALLBACK(CAPTURE_BEFORE, ANY_EVENT, {
     switcher_wake(ANY_THREAD, 0);
-    return false;
+    return PS_STOP;
 })
 
 REGISTER_CALLBACK(CAPTURE_AFTER, ANY_EVENT, {
     switcher_yield(self_id(self), true);
-    return false;
+    return PS_STOP;
 })
 
 BINGO_MODULE_INIT()

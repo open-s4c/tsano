@@ -94,15 +94,22 @@ index_from(token_t token)
 /* Context/self opaque metadata */
 typedef struct self self_t;
 
-/* ps_callback_f is the interface of the handlers subscribing to a chain.
- * If the handler returns false, the chain is interrupted, ie, the event is
- * stopped from being propagated in this chain. */
-typedef bool (*ps_callback_f)(token_t token, const void *arg, self_t *self);
-
 #define PS_SUCCESS 0
-#define PS_DROP    1
-#define PS_INVALID 2
-#define PS_ERROR   (-(PS_INVALID | 0))
+#define PS_STOP    1
+#define PS_DROP    2
+/* Errors start at 8. Further details are set in higher bits */
+#define PS_ERROR   8
+#define PS_INVALID (PS_ERROR | (PS_ERROR << 1))
+
+/* ps_callback_f is the subscriber interface.
+ *
+ * Callbacks can return the following codes:
+ * - PS_SUCCESS: event handled successfully
+ * - PS_STOP: event handled successfully, but chain should be interrupted
+ * - PS_DROP: interrupt chain, discard event
+ * - PS_ERROR: error occurred, abort system
+ */
+typedef int (*ps_callback_f)(token_t token, const void *arg, self_t *self);
 
 /* ps_publish publishes (ie, dispatches) an event to a chain.
  *
@@ -112,7 +119,7 @@ typedef bool (*ps_callback_f)(token_t token, const void *arg, self_t *self);
  * subscribing handler to test for NULL and to cast `arg` and `ret` to correct
  * types based on `event`.
  *
- * Returns 0 if success, otherwise non-zero.
+ * Returns one of the PS_ error codes above.
  */
 int ps_publish(token_t token, const void *arg, self_t *self);
 

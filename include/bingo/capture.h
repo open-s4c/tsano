@@ -31,6 +31,8 @@ enum capture_chains {
  * execution, or replace system functions. The event type is given by the
  * `event` argument. If `arg` is not NULL, the receivers are expected to
  * cast it to the right type using the event's event.
+ *
+ * On error, aborts system.
  */
 void capture_event(event_id event, const void *arg);
 
@@ -42,8 +44,11 @@ void capture_event(event_id event, const void *arg);
  * argument. If `arg` is not NULL, the receivers are expected to cast it to
  * the right type using the event's event. The mailbox `ret` cat bet set to
  * allow receivers to return values.
+ *
+ * Returns PS_SUCCESS on sucess, PS_DROP if event should be dropped. On error,
+ * aborts system.
  */
-void capture_before(event_id event, const void *arg);
+int capture_before(event_id event, const void *arg);
 
 /* Publish event after an action in the user code is executed.
  *
@@ -53,6 +58,8 @@ void capture_before(event_id event, const void *arg);
  * `arg` is not NULL, the receivers are expected to cast it to the right
  * type using the event's event. The mailbox `ret` cat bet set to allow
  * receivers to return values.
+ *
+ * On error, aborts system.
  */
 void capture_after(event_id event, const void *arg);
 
@@ -65,11 +72,11 @@ void capture_after(event_id event, const void *arg);
  * LD_PRELOAD.
  */
 #define REGISTER_CALLBACK(CHAIN, EVENT, CALLBACK)                              \
-    static bool _bingo_callback_##CHAIN##_##EVENT(                             \
+    static int _bingo_callback_##CHAIN##_##EVENT(                              \
         token_t token, const void *arg, self_t *self)                          \
     {                                                                          \
         CALLBACK;                                                              \
-        return true;                                                           \
+        return PS_SUCCESS;                                                     \
     }                                                                          \
     static void BINGO_CTOR _bingo_subscribe_##CHAIN##_##EVENT(void)            \
     {                                                                          \

@@ -13,9 +13,11 @@ INTERPOSE(int, pthread_cond_wait, pthread_cond_t *cond, pthread_mutex_t *mutex)
     struct pthread_cond_event ev = {.cond  = cond,
                                     .mutex = mutex,
                                     .pc    = INTERPOSE_PC};
-    capture_before(EVENT_COND_WAIT, &ev);
-    ev.ret = REAL(pthread_cond_wait, cond, mutex);
-    capture_after(EVENT_COND_WAIT, &ev);
+
+    int err = capture_before(EVENT_COND_WAIT, &ev);
+    ev.ret  = REAL(pthread_cond_wait, cond, mutex);
+    if (err != PS_DROP)
+        capture_after(EVENT_COND_WAIT, &ev);
     return ev.ret;
 }
 
@@ -25,27 +27,33 @@ INTERPOSE(int, pthread_cond_timedwait, pthread_cond_t *cond,
     struct pthread_cond_event ev = {.cond  = cond,
                                     .mutex = mutex,
                                     .pc    = INTERPOSE_PC};
-    capture_before(EVENT_COND_TIMEDWAIT, &ev);
-    ev.ret = REAL(pthread_cond_timedwait, cond, mutex, abstime);
-    capture_after(EVENT_COND_TIMEDWAIT, &ev);
+
+    int err = capture_before(EVENT_COND_TIMEDWAIT, &ev);
+    ev.ret  = REAL(pthread_cond_timedwait, cond, mutex, abstime);
+    if (err != PS_DROP)
+        capture_after(EVENT_COND_TIMEDWAIT, &ev);
     return ev.ret;
 }
 
 INTERPOSE(int, pthread_cond_signal, pthread_cond_t *cond)
 {
     struct pthread_cond_event ev = {.cond = cond, .pc = INTERPOSE_PC};
-    capture_before(EVENT_COND_SIGNAL, &ev);
-    ev.ret = REAL(pthread_cond_signal, cond);
-    capture_after(EVENT_COND_SIGNAL, &ev);
+
+    int err = capture_before(EVENT_COND_SIGNAL, &ev);
+    ev.ret  = REAL(pthread_cond_signal, cond);
+    if (err != PS_DROP)
+        capture_after(EVENT_COND_SIGNAL, &ev);
     return ev.ret;
 }
 
 INTERPOSE(int, pthread_cond_broadcast, pthread_cond_t *cond)
 {
     struct pthread_cond_event ev = {.cond = cond, .pc = INTERPOSE_PC};
-    capture_before(EVENT_COND_BROADCAST, &ev);
-    ev.ret = REAL(pthread_cond_broadcast, cond);
-    capture_after(EVENT_COND_BROADCAST, &ev);
+
+    int err = capture_before(EVENT_COND_BROADCAST, &ev);
+    ev.ret  = REAL(pthread_cond_broadcast, cond);
+    if (err != PS_DROP)
+        capture_after(EVENT_COND_BROADCAST, &ev);
     return ev.ret;
 }
 

@@ -16,7 +16,7 @@ int _ps_publish_do(token_t token, const void *arg, self_t *self);
 
 void _self_init(void);
 void _self_fini(void);
-void _self_handle(token_t token, const void *arg, self_t *self);
+int _self_handle(token_t token, const void *arg, self_t *self);
 
 void mempool_init(size_t cap);
 void mempool_fini(void);
