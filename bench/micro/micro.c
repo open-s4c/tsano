@@ -48,6 +48,7 @@ main(int argc, char *argv[])
     }
 
     int nthreads = 1;
+    int time     = 1;
     if (argc > 1) {
         nthreads = atoi(argv[1]);
     }
@@ -55,7 +56,7 @@ main(int argc, char *argv[])
     pthread_t *t = malloc(sizeof(pthread_t) * nthreads);
 
     if (argc > 2) {
-        int time = atoi(argv[2]);
+        time = atoi(argv[2]);
         for (int i = 0; i < nthreads; i++)
             pthread_create(&t[i], 0, run_time, 0);
     } else {
@@ -66,7 +67,7 @@ main(int argc, char *argv[])
     nanosec_t ts = now();
     vatomic_write(&start, 1);
     if (argc > 2) {
-        sleep(10);
+        sleep(time);
         vatomic_write(&stop, 1);
     }
     for (int i = 0; i < nthreads; i++)

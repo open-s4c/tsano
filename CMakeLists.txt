@@ -39,5 +39,6 @@ add_subdirectory(mod)
 add_subdirectory(tsano)
 add_subdirectory(test)
 add_subdirectory(scripts)
+add_subdirectory(bench/micro)
 
 install(TARGETS bingo bingo.a bingo.h bingo-core EXPORT ${PROJECT_TARGETS})
