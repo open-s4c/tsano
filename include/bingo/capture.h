@@ -72,7 +72,7 @@ void capture_after(type_id type, void *event);
  * LD_PRELOAD.
  */
 #define REGISTER_CALLBACK(HOOK, EVENT, CALLBACK)                               \
-    static int _bingo_callback_##HOOK##_##EVENT(token_t token, void *event,    \
+    static int _bingo_callback_##HOOK##_##EVENT(chain_t chain, void *event,    \
                                                 self_t *self)                  \
     {                                                                          \
         CALLBACK;                                                              \

@@ -11,8 +11,8 @@
  *
  * Events are have a type (`type_id`) and have an argument `arg`. A chain is a
  * pair given by a `hook_id` and a `type_id`. This pubsub uses the concept of
- * tokens. To publish to a chain, you first have to retrieve a token for the
- * chain. A token might be exlusive, making other publishers to fail in runtime.
+ * chains. To publish to a chain, you first have to retrieve a chain for the
+ * chain. A chain might be exlusive, making other publishers to fail in runtime.
  *
  * ## Naming
  *
@@ -47,43 +47,20 @@ typedef uint16_t hook_id;
 
 typedef struct self self_t;
 
-/* token_t is an object representing the permission to publish to a chain. */
-typedef union token {
-    const struct {
-        hook_id hook;
-        type_id type;
-        uint32_t index;
-    } details;
-    uint64_t opaque;
-} token_t;
+/* chain_t is a pair of hook and type and works as a pubsub topic. */
+typedef struct chain {
+    hook_id hook;
+    type_id type;
+} chain_t;
 
-/* Initializes a token */
-static inline token_t
-make_token(hook_id hook, type_id type)
+/* Initializes a chain object */
+static inline chain_t
+as_chain(hook_id hook, type_id type)
 {
-    return (token_t){.details = {
-                         .hook  = hook,
-                         .type  = type,
-                         .index = 0,
-                     }};
-}
-
-static inline hook_id
-hook_from(token_t token)
-{
-    return token.details.hook;
-}
-
-static inline type_id
-type_from(token_t token)
-{
-    return token.details.type;
-}
-
-static inline uint32_t
-index_from(token_t token)
-{
-    return token.details.index;
+    return (chain_t){
+        .hook = hook,
+        .type = type,
+    };
 }
 
 /* Context/self opaque metadata */
@@ -104,7 +81,7 @@ typedef struct self self_t;
  * - PS_DROP: interrupt chain, discard event
  * - PS_ERROR: error occurred, abort system
  */
-typedef int (*ps_callback_f)(token_t token, void *event, self_t *self);
+typedef int (*ps_callback_f)(chain_t chain, void *event, self_t *self);
 
 /* ps_publish publishes (ie, dispatches) an event to a chain.
  *
@@ -116,17 +93,7 @@ typedef int (*ps_callback_f)(token_t token, void *event, self_t *self);
  *
  * Returns one of the PS_ error codes above.
  */
-int ps_publish(token_t token, void *event, self_t *self);
-
-/* ps_republish republishes to the suffix of a chain.
- *
- * This function can be used inside handlers to republish an event to the
- * current chain using the token given in the callback. Only the suffix of the
- * chain receives the publication. This can be used to create tree chains or to
- * lookahead, by allowing the suffix of the chain to execute before the current
- * handler performs an action (once the republish macro returns).
- */
-int ps_republish(token_t token, void *event, self_t *self);
+int ps_publish(chain_t chain, void *event, self_t *self);
 
 /* ps_subscribe subscribes a callback in a chain for an event.
  *

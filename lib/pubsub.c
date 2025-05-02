@@ -70,33 +70,19 @@ _ps_subscribe_hook(hook_id hook, type_id type, ps_callback_f cb)
 
 #ifndef BINGO_PS_EXTERNAL
 BINGO_HIDE int
-_ps_publish_do(token_t token, void *event, self_t *self)
+_ps_publish_do(chain_t chain, void *event, self_t *self)
 {
-    hook_id hook     = hook_from(token);
-    type_id type     = type_from(token);
-    size_t start_idx = index_from(token);
-
-    size_t hook_idx = hook - 1;
-    size_t type_idx = type - 1;
+    size_t hook_idx = chain.hook - 1;
+    size_t type_idx = chain.type - 1;
     struct type *ev = &_hooks[hook_idx].types[type_idx];
 
-    // There is only one subscription group that matches a (hook, type) pair.
-    // By design, if a subscriber at index sidx uses the token given to the
-    // callback to "republish", then only the subscriptions after sidx will
-    // receive the republication. See republish function */
-
-    for (size_t idx = start_idx; idx < ev->count; idx++) {
+    for (size_t idx = 0; idx < ev->count; idx++) {
         struct sub *subs = &ev->subs[idx];
-
         // now we call the callback and abort the hook if the subscriber
         // "censors" the type by returning PS_STOP.
-        int err = subs->cb(token, event, self);
+        int err = subs->cb(chain, event, self);
         if (err != PS_SUCCESS)
             return err;
-
-        // we increment token index to mark current subscriber in case
-        // subscriber wants to republish to the remainder of this hook.
-        token.opaque = next_index(token).opaque;
     }
     return PS_SUCCESS;
 }
@@ -104,30 +90,16 @@ _ps_publish_do(token_t token, void *event, self_t *self)
 
 
 BINGO_HIDE int
-_ps_publish(token_t token, void *event, self_t *self)
+_ps_publish(chain_t chain, void *event, self_t *self)
 {
-    hook_id hook = hook_from(token);
-    type_id type = type_from(token);
-
     if (!_initd)
         return PS_DROP;
-    if (hook == ANY_HOOK || hook >= MAX_HOOKS)
+    if (chain.hook == ANY_HOOK || chain.hook >= MAX_HOOKS)
         return PS_INVALID;
-    if (type == ANY_TYPE || type >= MAX_TYPES)
+    if (chain.type == ANY_TYPE || chain.type >= MAX_TYPES)
         return PS_INVALID;
 
-#ifdef BINGO_PS_DIRECT_SELF
-    assert(index_from(token) == 0);
-    return _self_handle(token, event, self);
-#else
-    return _ps_publish_do(token, event, self);
-#endif
-}
-
-BINGO_HIDE int
-_ps_republish(token_t token, void *event, self_t *self)
-{
-    return _ps_publish_do(next_index(token), event, self);
+    return _ps_publish_do(chain, event, self);
 }
 
 BINGO_HIDE void
@@ -156,13 +128,7 @@ ps_subscribe(hook_id hook, type_id type, ps_callback_f cb)
 }
 
 int
-ps_republish(token_t token, void *event, self_t *self)
+ps_publish(chain_t chain, void *event, self_t *self)
 {
-    return _ps_republish(token, event, self);
-}
-
-int
-ps_publish(token_t token, void *event, self_t *self)
-{
-    return _ps_publish(token, event, self);
+    return _ps_publish(chain, event, self);
 }
