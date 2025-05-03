@@ -86,7 +86,7 @@ main(int argc, char *argv[])
         pthread_join(t[i], 0);
     nanosec_t te = now();
 
-    printf("threads=%d count=%lu elapsed=%.2fs\n", nthreads,
+    printf("threads=%d count=%" PRIu64 " elapsed=%.2fs\n", nthreads,
            vatomic_read(&count), in_sec(te - ts));
     free(t);
     return EXIT_SUCCESS;
