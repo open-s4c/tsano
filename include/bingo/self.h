@@ -14,18 +14,15 @@
 
 #include <bingo/thread_id.h>
 
-/* Opaque self object passed to callbacks */
-typedef struct self self_t;
-
 /* Get unique thread id */
-thread_id self_id(self_t *self);
+thread_id self_id(metadata_t *self);
 
 /* Get or allocate a memory area in TLS.
  *
  * `global` must be a unique pointer, typically a global variable of the desired
  * type.
  */
-void *self_tls(self_t *self, const void *global, size_t size);
+void *self_tls(metadata_t *self, const void *global, size_t size);
 
 
 /* Helper macro that gets or creates a memory area with the size of the type

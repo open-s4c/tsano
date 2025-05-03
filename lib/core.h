@@ -10,12 +10,12 @@
 #include <bingo/pubsub.h>
 
 void _ps_init(void);
-int _ps_publish(chain_t chain, void *event, self_t *self);
-int _ps_publish_do(chain_t chain, void *event, self_t *self);
+int _ps_publish(chain_t chain, void *event, metadata_t *self);
+int _ps_publish_do(chain_t chain, void *event, metadata_t *self);
 
 void _self_init(void);
 void _self_fini(void);
-int _self_handle(chain_t chain, void *event, self_t *self);
+int _self_handle(chain_t chain, void *event, metadata_t *self);
 
 void mempool_init(size_t cap);
 void mempool_fini(void);

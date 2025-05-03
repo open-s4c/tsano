@@ -70,7 +70,7 @@ _ps_subscribe_hook(hook_id hook, type_id type, ps_callback_f cb)
 
 #ifndef BINGO_PS_EXTERNAL
 BINGO_HIDE int
-_ps_publish_do(chain_t chain, void *event, self_t *self)
+_ps_publish_do(chain_t chain, void *event, metadata_t *md)
 {
     size_t hook_idx = chain.hook - 1;
     size_t type_idx = chain.type - 1;
@@ -80,7 +80,7 @@ _ps_publish_do(chain_t chain, void *event, self_t *self)
         struct sub *subs = &ev->subs[idx];
         // now we call the callback and abort the hook if the subscriber
         // "censors" the type by returning PS_STOP.
-        int err = subs->cb(chain, event, self);
+        int err = subs->cb(chain, event, md);
         if (err != PS_SUCCESS)
             return err;
     }
@@ -90,7 +90,7 @@ _ps_publish_do(chain_t chain, void *event, self_t *self)
 
 
 BINGO_HIDE int
-_ps_publish(chain_t chain, void *event, self_t *self)
+_ps_publish(chain_t chain, void *event, metadata_t *md)
 {
     if (!_initd)
         return PS_DROP;
@@ -99,7 +99,7 @@ _ps_publish(chain_t chain, void *event, self_t *self)
     if (chain.type == ANY_TYPE || chain.type >= MAX_TYPES)
         return PS_INVALID;
 
-    return _ps_publish_do(chain, event, self);
+    return _ps_publish_do(chain, event, md);
 }
 
 BINGO_HIDE void
@@ -128,7 +128,7 @@ ps_subscribe(hook_id hook, type_id type, ps_callback_f cb)
 }
 
 int
-ps_publish(chain_t chain, void *event, self_t *self)
+ps_publish(chain_t chain, void *event, metadata_t *self)
 {
     return _ps_publish(chain, event, self);
 }

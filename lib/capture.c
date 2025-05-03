@@ -12,7 +12,8 @@ void
 capture_event(type_id type, void *event)
 {
     chain_t chain = as_chain(CAPTURE_EVENT, type);
-    int err       = _ps_publish(chain, event, 0);
+    metadata_t md = {0};
+    int err       = _ps_publish(chain, event, &md);
     if ((err & PS_ERROR) == PS_ERROR) {
         exit(EXIT_FAILURE);
     }
@@ -22,7 +23,8 @@ int
 capture_before(type_id type, void *event)
 {
     chain_t chain = as_chain(CAPTURE_BEFORE, type);
-    int err       = _ps_publish(chain, event, 0);
+    metadata_t md = {0};
+    int err       = _ps_publish(chain, event, &md);
     if ((err & PS_ERROR) == PS_ERROR) {
         exit(EXIT_FAILURE);
     }
@@ -33,7 +35,8 @@ void
 capture_after(type_id type, void *event)
 {
     chain_t chain = as_chain(CAPTURE_AFTER, type);
-    int err       = _ps_publish(chain, event, 0);
+    metadata_t md = {0};
+    int err       = _ps_publish(chain, event, &md);
     if ((err & PS_ERROR) == PS_ERROR) {
         exit(EXIT_FAILURE);
     }

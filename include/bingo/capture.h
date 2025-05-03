@@ -73,7 +73,7 @@ void capture_after(type_id type, void *event);
  */
 #define REGISTER_CALLBACK(HOOK, EVENT, CALLBACK)                               \
     static int _bingo_callback_##HOOK##_##EVENT(chain_t chain, void *event,    \
-                                                self_t *self)                  \
+                                                metadata_t *md)                \
     {                                                                          \
         CALLBACK;                                                              \
         return PS_SUCCESS;                                                     \

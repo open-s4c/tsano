@@ -20,7 +20,7 @@ vatomic64_t count;
 
 int x = 0;
 REGISTER_CALLBACK(CAPTURE_EVENT, EVENT_MA_AWRITE, {
-    memaccess_t *ma = (memaccess_t *)self_event(event);
+    memaccess_t *ma = (memaccess_t *)event; // self_event(event);
     x += ma->argu64;
 })
 

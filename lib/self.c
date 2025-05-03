@@ -34,6 +34,7 @@
 // #define USE_IDMAP
 
 typedef struct thread_data {
+    metadata_t md;
     int guard;
     thread_id tid;
     int count;
@@ -265,17 +266,17 @@ _thrdata_del(thrdata_t *td)
 // public interface
 // -----------------------------------------------------------------------------
 BINGO_HIDE thread_id
-self_id(self_t *self)
+self_id(metadata_t *md)
 {
-    thrdata_t *td = (thrdata_t *)self;
+    thrdata_t *td = (thrdata_t *)md;
     return td ? td->tid : NO_THREAD;
 }
 
 BINGO_HIDE void *
-self_tls(self_t *self, const void *global, size_t size)
+self_tls(metadata_t *md, const void *global, size_t size)
 {
     uintptr_t item_key = (uintptr_t)global;
-    thrdata_t *td      = (thrdata_t *)self;
+    thrdata_t *td      = (thrdata_t *)md;
 
     // should never be called before the self initialization
     assert(td != NULL);
@@ -323,47 +324,49 @@ _self_destruct(void *arg)
 // pubsub handler
 // -----------------------------------------------------------------------------
 static void
-_self_guard(chain_t chain, void *event, thrdata_t *td)
+_self_guard(chain_t chain, void *event, metadata_t *md)
 {
+    thrdata_t *td = (thrdata_t *)md;
     td->guard++;
     td->count++;
-    int err =
-        _ps_publish(as_chain(10 + chain.hook, chain.type), event, (self_t *)td);
+    int err = _ps_publish(as_chain(10 + chain.hook, chain.type), event, md);
     td->guard--;
     if (unlikely(err == PS_ERROR))
         abort();
 }
 
 static int
-_self_handle_before(chain_t chain, void *event, self_t *s)
+_self_handle_before(chain_t chain, void *event, metadata_t *md)
 {
-    thrdata_t *td = (s ? (thrdata_t *)s : _thrdata_get());
+    thrdata_t *td = _thrdata_get();
     if (unlikely(td == NULL))
         return PS_DROP;
 
+    td->md = *md;
     if (td->guard++ == 0)
-        _self_guard(chain, event, td);
+        _self_guard(chain, event, &td->md);
 
     return PS_STOP;
 }
 
 static int
-_self_handle_after(chain_t chain, void *event, self_t *s)
+_self_handle_after(chain_t chain, void *event, metadata_t *md)
 {
-    thrdata_t *td = (s ? (thrdata_t *)s : _thrdata_get());
+    thrdata_t *td = _thrdata_get();
     if (unlikely(td == NULL))
         return PS_DROP;
 
+    td->md = *md;
     if (td->guard-- == 1)
-        _self_guard(chain, event, td);
+        _self_guard(chain, event, &td->md);
 
     return PS_STOP;
 }
 
 static int
-_self_handle_event(chain_t chain, void *event, self_t *s)
+_self_handle_event(chain_t chain, void *event, metadata_t *md)
 {
-    thrdata_t *td = (s ? (thrdata_t *)s : _thrdata_get());
+    thrdata_t *td = _thrdata_get();
     if (td == NULL)
         if (chain.type == EVENT_THREAD_INIT)
             // Only initialize TLS if the event is a THREAD_INIT event.
@@ -372,15 +375,18 @@ _self_handle_event(chain_t chain, void *event, self_t *s)
     if (unlikely(td == NULL))
         return PS_DROP;
 
+    td->md = *md;
     if (unlikely(td->tid == MAIN_THREAD && td->count == 0)) {
         // inform remainder of chain that main thread started
+        td->md.hook = 10 + CAPTURE_EVENT;
         if (_ps_publish(as_chain(10 + CAPTURE_EVENT, EVENT_THREAD_INIT), 0,
-                        (self_t *)td) != PS_SUCCESS)
+                        &td->md) != PS_SUCCESS)
             abort();
+        td->md.hook = md->hook;
     }
 
     if (td->guard == 0)
-        _self_guard(chain, event, td);
+        _self_guard(chain, event, &td->md);
 
     // Destruct thread data
     if (unlikely(chain.type == EVENT_THREAD_FINI))
@@ -390,15 +396,15 @@ _self_handle_event(chain_t chain, void *event, self_t *s)
 }
 
 BINGO_HIDE int
-_self_handle(chain_t chain, void *event, self_t *self)
+_self_handle(chain_t chain, void *event, metadata_t *md)
 {
     switch (chain.hook) {
         case CAPTURE_BEFORE:
-            return _self_handle_before(chain, event, self);
+            return _self_handle_before(chain, event, md);
         case CAPTURE_AFTER:
-            return _self_handle_after(chain, event, self);
+            return _self_handle_after(chain, event, md);
         case CAPTURE_EVENT:
-            return _self_handle_event(chain, event, self);
+            return _self_handle_event(chain, event, md);
     }
     return PS_INVALID;
 }

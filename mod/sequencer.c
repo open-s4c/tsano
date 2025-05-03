@@ -15,7 +15,7 @@ REGISTER_CALLBACK(CAPTURE_EVENT, ANY_TYPE, {
             break;
         case EVENT_THREAD_INIT:
             /* threads call this only ONCE (except the main thread). */
-            switcher_yield(self_id(self), true);
+            switcher_yield(self_id(md), true);
             break;
         default:
             break;
@@ -29,7 +29,7 @@ REGISTER_CALLBACK(CAPTURE_BEFORE, ANY_TYPE, {
 })
 
 REGISTER_CALLBACK(CAPTURE_AFTER, ANY_TYPE, {
-    switcher_yield(self_id(self), true);
+    switcher_yield(self_id(md), true);
     return PS_STOP;
 })
 

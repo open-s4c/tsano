@@ -66,6 +66,12 @@ as_chain(hook_id hook, type_id type)
 /* Context/self opaque metadata */
 typedef struct self self_t;
 
+typedef struct metadata {
+    hook_id hook;
+    bool drop;
+} metadata_t;
+
+
 #define PS_SUCCESS 0
 #define PS_STOP    1
 #define PS_DROP    2
@@ -81,7 +87,7 @@ typedef struct self self_t;
  * - PS_DROP: interrupt chain, discard event
  * - PS_ERROR: error occurred, abort system
  */
-typedef int (*ps_callback_f)(chain_t chain, void *event, self_t *self);
+typedef int (*ps_callback_f)(chain_t chain, void *event, metadata_t *md);
 
 /* ps_publish publishes (ie, dispatches) an event to a chain.
  *
@@ -93,7 +99,7 @@ typedef int (*ps_callback_f)(chain_t chain, void *event, self_t *self);
  *
  * Returns one of the PS_ error codes above.
  */
-int ps_publish(chain_t chain, void *event, self_t *self);
+int ps_publish(chain_t chain, void *event, metadata_t *md);
 
 /* ps_subscribe subscribes a callback in a chain for an event.
  *
