@@ -3,10 +3,9 @@
  * SPDX-License-Identifier: MIT
  */
 #include <assert.h>
-#include <pthread.h>
-
 #include <bingo/capture/pthread.h>
 #include <bingo/interpose.h>
+#include <pthread.h>
 
 INTERPOSE(int, pthread_mutex_lock, pthread_mutex_t *mutex)
 {
@@ -16,6 +15,22 @@ INTERPOSE(int, pthread_mutex_lock, pthread_mutex_t *mutex)
     ev.ret  = REAL(pthread_mutex_lock, mutex);
     if (err != PS_DROP)
         capture_after(EVENT_MUTEX_LOCK, &ev);
+    return ev.ret;
+}
+
+INTERPOSE(int, pthread_mutex_timedlock, pthread_mutex_t *mutex,
+          const struct timespec *abstime)
+{
+    struct pthread_mutex_timed_event ev = {
+        .pc      = INTERPOSE_PC,
+        .mutex   = mutex,
+        .abstime = abstime,
+    };
+
+    int err = capture_before(EVENT_MUTEX_TIMEDLOCK, &ev);
+    ev.ret  = REAL(pthread_mutex_timedlock, mutex, abstime);
+    if (err != PS_DROP)
+        capture_after(EVENT_MUTEX_TIMEDLOCK, &ev);
     return ev.ret;
 }
 

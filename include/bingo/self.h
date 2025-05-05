@@ -10,9 +10,9 @@
  */
 #ifndef BINGO_SELF_H
 #define BINGO_SELF_H
-#include <stddef.h>
-
+#include <bingo/pubsub.h>
 #include <bingo/thread_id.h>
+#include <stddef.h>
 
 /* Get unique thread id */
 thread_id self_id(metadata_t *self);
