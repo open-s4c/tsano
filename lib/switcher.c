@@ -42,12 +42,12 @@ typedef struct {
 
 static switcher_t _switcher;
 
-void
+BINGO_HIDE_IF void
 _switcher_resuming(void)
 {
 }
 
-int
+BINGO_HIDE_IF int
 switcher_yield(thread_id id, bool any)
 {
     thread_id prev, next;
@@ -107,7 +107,7 @@ switcher_yield(thread_id id, bool any)
     return status;
 }
 
-void
+BINGO_HIDE_IF void
 switcher_wake(thread_id id, nanosec_t slack)
 {
     log_debugf("\t\t\t\tWAKE   thread %" PRIu64 "\n", id);
@@ -132,7 +132,7 @@ switcher_wake(thread_id id, nanosec_t slack)
     vmutex_release(&_switcher.mutex);
 }
 
-void
+BINGO_HIDE_IF void
 switcher_abort()
 {
     log_debugf("ABORT called\n");

@@ -7,7 +7,7 @@
 const size_t mempool_size = 1024 * 1024 * 200;
 bool _initd;
 
-void
+BINGO_HIDE_IF void
 bingo_init()
 {
     if (_initd)
@@ -22,7 +22,7 @@ bingo_init()
     _ps_init();
 }
 
-void
+BINGO_HIDE_IF void
 bingo_fini()
 {
     if (!_initd)

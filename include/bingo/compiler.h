@@ -17,6 +17,12 @@
     #define BINGO_HIDE __attribute__((visibility("hidden")))
 #endif
 
+#ifdef BINGO_HIDE_INTERFACE
+    #define BINGO_HIDE_IF __attribute__((visibility("hidden")))
+#else
+    #define BINGO_HIDE_IF
+#endif
+
 #ifndef likely
     #define likely(x) __builtin_expect(!!(x), 1)
 #endif

@@ -336,7 +336,7 @@ _self_guard(chain_t chain, void *event, metadata_t *md)
         abort();
 }
 
-static int
+BINGO_HIDE int
 _self_handle_before(chain_t chain, void *event, metadata_t *md)
 {
     thrdata_t *td = _thrdata_get();
@@ -350,7 +350,7 @@ _self_handle_before(chain_t chain, void *event, metadata_t *md)
     return PS_STOP;
 }
 
-static int
+BINGO_HIDE int
 _self_handle_after(chain_t chain, void *event, metadata_t *md)
 {
     thrdata_t *td = _thrdata_get();
@@ -364,7 +364,7 @@ _self_handle_after(chain_t chain, void *event, metadata_t *md)
     return PS_STOP;
 }
 
-static int
+BINGO_HIDE int
 _self_handle_event(chain_t chain, void *event, metadata_t *md)
 {
     thrdata_t *td = _thrdata_get();

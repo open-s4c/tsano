@@ -2,11 +2,11 @@
  * Copyright (C) Huawei Technologies Co., Ltd. 2025. All rights reserved.
  * SPDX-License-Identifier: MIT
  */
-#include <assert.h>
-#include <stdio.h>
-
 #include "core.h"
+
+#include <assert.h>
 #include <bingo/pubsub.h>
+#include <stdio.h>
 
 #define MAX_SUBSCRIPTIONS 512
 
@@ -112,7 +112,7 @@ _ps_init()
 // public interface
 // -----------------------------------------------------------------------------
 
-int
+BINGO_HIDE_IF int
 ps_subscribe(hook_id hook, type_id type, ps_callback_f cb)
 {
     assert(cb != NULL);
@@ -127,7 +127,7 @@ ps_subscribe(hook_id hook, type_id type, ps_callback_f cb)
     return PS_SUCCESS;
 }
 
-int
+BINGO_HIDE_IF int
 ps_publish(chain_t chain, void *event, metadata_t *self)
 {
     return _ps_publish(chain, event, self);
