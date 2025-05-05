@@ -13,16 +13,15 @@
 #ifndef BINGO_CAPTURE_H
 #define BINGO_CAPTURE_H
 
-#include <stdlib.h>
-
 #include <bingo/compiler.h>
 #include <bingo/pubsub.h>
+#include <stdlib.h>
 
 /* Standard capture hooks. */
 enum capture_hooks {
-    CAPTURE_EVENT  = 1,
-    CAPTURE_BEFORE = 2,
-    CAPTURE_AFTER  = 3,
+    RAW_CAPTURE_EVENT  = 1,
+    RAW_CAPTURE_BEFORE = 2,
+    RAW_CAPTURE_AFTER  = 3,
 };
 
 /* Publish event at a given point during the execution.

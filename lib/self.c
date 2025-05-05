@@ -15,19 +15,19 @@
  *
  * This should be the first module subscribing to all events from pubsub.
  */
-#include <assert.h>
-#include <pthread.h>
-#include <stdio.h>
-#include <string.h>
-
 #include "core.h"
 #include "rbtree.h"
+
+#include <assert.h>
 #include <bingo/capture.h>
 #include <bingo/log.h>
 #include <bingo/mempool.h>
 #include <bingo/pubsub.h>
 #include <bingo/self.h>
 #include <bingo/thread_id.h>
+#include <pthread.h>
+#include <stdio.h>
+#include <string.h>
 #include <vsync/atomic.h>
 
 // #define USE_THRMAP
@@ -81,6 +81,7 @@ _tls_fini(thrdata_t *td)
 // -----------------------------------------------------------------------------
 #ifdef USE_IDMAP
     #include "idmap.h"
+
     #include <vsync/spinlock/seqlock.h>
     #define MAX_THREADS 4096
 
@@ -329,7 +330,7 @@ _self_guard(chain_t chain, void *event, metadata_t *md)
     thrdata_t *td = (thrdata_t *)md;
     td->guard++;
     td->count++;
-    int err = _ps_publish(as_chain(10 + chain.hook, chain.type), event, md);
+    int err = _ps_publish(chain, event, md);
     td->guard--;
     if (unlikely(err == PS_ERROR))
         abort();
@@ -344,7 +345,7 @@ _self_handle_before(chain_t chain, void *event, metadata_t *md)
 
     td->md = *md;
     if (td->guard++ == 0)
-        _self_guard(chain, event, &td->md);
+        _self_guard(as_chain(CAPTURE_BEFORE, chain.type), event, &td->md);
 
     return PS_STOP;
 }
@@ -358,7 +359,7 @@ _self_handle_after(chain_t chain, void *event, metadata_t *md)
 
     td->md = *md;
     if (td->guard-- == 1)
-        _self_guard(chain, event, &td->md);
+        _self_guard(as_chain(CAPTURE_AFTER, chain.type), event, &td->md);
 
     return PS_STOP;
 }
@@ -378,15 +379,14 @@ _self_handle_event(chain_t chain, void *event, metadata_t *md)
     td->md = *md;
     if (unlikely(td->tid == MAIN_THREAD && td->count == 0)) {
         // inform remainder of chain that main thread started
-        td->md.hook = 10 + CAPTURE_EVENT;
-        if (_ps_publish(as_chain(10 + CAPTURE_EVENT, EVENT_THREAD_INIT), 0,
+        if (_ps_publish(as_chain(CAPTURE_EVENT, EVENT_THREAD_INIT), 0,
                         &td->md) != PS_SUCCESS)
             abort();
         td->md.hook = md->hook;
     }
 
     if (td->guard == 0)
-        _self_guard(chain, event, &td->md);
+        _self_guard(as_chain(CAPTURE_EVENT, chain.type), event, &td->md);
 
     // Destruct thread data
     if (unlikely(chain.type == EVENT_THREAD_FINI))
@@ -399,11 +399,11 @@ BINGO_HIDE int
 _self_handle(chain_t chain, void *event, metadata_t *md)
 {
     switch (chain.hook) {
-        case CAPTURE_BEFORE:
+        case RAW_CAPTURE_BEFORE:
             return _self_handle_before(chain, event, md);
-        case CAPTURE_AFTER:
+        case RAW_CAPTURE_AFTER:
             return _self_handle_after(chain, event, md);
-        case CAPTURE_EVENT:
+        case RAW_CAPTURE_EVENT:
             return _self_handle_event(chain, event, md);
     }
     return PS_INVALID;
@@ -425,9 +425,9 @@ _self_init()
     (void)_thrdata_new();
 
     // Subscribe callbacks and abort on failure
-    if (0 != ps_subscribe(CAPTURE_BEFORE, ANY_TYPE, _self_handle_before) ||
-        0 != ps_subscribe(CAPTURE_AFTER, ANY_TYPE, _self_handle_after) ||
-        0 != ps_subscribe(CAPTURE_EVENT, ANY_TYPE, _self_handle_event))
+    if (0 != ps_subscribe(RAW_CAPTURE_BEFORE, ANY_TYPE, _self_handle_before) ||
+        0 != ps_subscribe(RAW_CAPTURE_AFTER, ANY_TYPE, _self_handle_after) ||
+        0 != ps_subscribe(RAW_CAPTURE_EVENT, ANY_TYPE, _self_handle_event))
         exit(EXIT_FAILURE);
 }
 

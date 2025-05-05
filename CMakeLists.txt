@@ -41,4 +41,4 @@ add_subdirectory(test)
 add_subdirectory(scripts)
 add_subdirectory(bench/micro)
 
-install(TARGETS bingo bingo.a bingo.h bingo-core EXPORT ${PROJECT_TARGETS})
+install(TARGETS bingo bingo.h bingo-core EXPORT ${PROJECT_TARGETS})

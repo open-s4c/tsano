@@ -71,7 +71,6 @@ typedef struct metadata {
     bool drop;
 } metadata_t;
 
-
 #define PS_SUCCESS 0
 #define PS_STOP    1
 #define PS_DROP    2

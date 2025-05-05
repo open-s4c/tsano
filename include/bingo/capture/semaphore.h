@@ -7,7 +7,7 @@
 
 #include <bingo/capture.h>
 
-#define _EVENT_START 20
+#define _EVENT_START 70
 enum sem_events {
     EVENT_SEM_POST      = 0 + _EVENT_START,
     EVENT_SEM_WAIT      = 1 + _EVENT_START,

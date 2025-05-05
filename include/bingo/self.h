@@ -32,4 +32,12 @@ void *self_tls(metadata_t *self, const void *global, size_t size);
     ((__typeof(global_ptr))self_tls((self), (global_ptr),                      \
                                     sizeof(*(global_ptr))))
 
+
+/* Standard capture hooks. */
+enum capture_self_hooks {
+    CAPTURE_EVENT  = 4,
+    CAPTURE_BEFORE = 5,
+    CAPTURE_AFTER  = 6,
+};
+
 #endif /* BINGO_SELF_H */

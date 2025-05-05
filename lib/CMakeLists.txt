@@ -34,6 +34,7 @@ set(MODS
     # pthread library
     ../mod/pthread_create.c
     ../mod/pthread_mutex.c
+    ../mod/pthread_rwlock.c
     ../mod/pthread_cond.c
     # malloc free and friends
     ../mod/malloc.c
@@ -45,24 +46,21 @@ set(MODS
     ../mod/tsan.c
     ../mod/stacktrace.c)
 
-add_library(bingo.a STATIC ${SRCS} ${MODS})
-target_compile_options(bingo.a PUBLIC -DBINGO_PS_EXTERNAL
-                                      -DBINGO_PS_DIRECT_SELF)
-target_link_libraries(bingo.a PUBLIC bingo.h)
-set_property(TARGET bingo.a PROPERTY SUFFIX "")
-install(TARGETS bingo.a DESTINATION lib/bingo)
+add_library(bingo.lto OBJECT ${SRCS} ${MODS})
+target_compile_options(bingo.lto PUBLIC -DBINGO_PS_EXTERNAL
+                                        -DBINGO_PS_DIRECT_SELF)
+target_link_libraries(bingo.lto PUBLIC bingo.h)
 
 add_library(bingo SHARED ${SRCS} ${MODS})
-target_compile_options(bingo PUBLIC -DBINGO_PS_DIRECT_SELF)
 target_link_libraries(bingo PUBLIC bingo.h)
 target_link_libraries(bingo PRIVATE pthread)
 install(TARGETS bingo DESTINATION lib)
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "NetBSD")
   target_compile_options(bingo PRIVATE -fPIC -flto -ffat-lto-objects)
-  target_compile_options(bingo.a PRIVATE -fPIC -flto -ffat-lto-objects)
+  target_compile_options(bingo.lto PUBLIC -fPIC -flto -ffat-lto-objects)
 else()
   # this should work for Linux, macOS and OHOS
   set_property(TARGET bingo PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
-  set_property(TARGET bingo.a PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+  set_property(TARGET bingo.lto PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()

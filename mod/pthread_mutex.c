@@ -21,7 +21,7 @@ INTERPOSE(int, pthread_mutex_lock, pthread_mutex_t *mutex)
 INTERPOSE(int, pthread_mutex_timedlock, pthread_mutex_t *mutex,
           const struct timespec *abstime)
 {
-    struct pthread_mutex_timed_event ev = {
+    struct pthread_mutex_event ev = {
         .pc      = INTERPOSE_PC,
         .mutex   = mutex,
         .abstime = abstime,
