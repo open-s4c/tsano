@@ -47,7 +47,7 @@ set(MODS
     ../mod/stacktrace.c)
 
 add_library(bingo.lto OBJECT ${SRCS} ${MODS})
-target_compile_options(bingo.lto PUBLIC -DBINGO_PS_EXTERNAL
+target_compile_options(bingo.lto PUBLIC -fPIC -DBINGO_PS_EXTERNAL
                                         -DBINGO_HIDE_INTERFACE)
 target_link_libraries(bingo.lto PUBLIC bingo.h)
 
