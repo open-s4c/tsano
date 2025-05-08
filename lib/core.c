@@ -5,7 +5,7 @@
 #include "core.h"
 
 const size_t mempool_size = 1024 * 1024 * 200;
-bool _initd;
+static bool _initd;
 
 BINGO_HIDE_IF void
 bingo_init()
