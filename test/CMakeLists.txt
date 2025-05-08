@@ -5,6 +5,7 @@ add_compile_options(-DVATOMIC_BUILTINS)
 set(TSAN_mp on)
 set(TSAN_simple-tsan on)
 set(BINGO_simple on)
+set(BINGO_capture_event on)
 
 file(GLOB SRCS *.c)
 foreach(SRC ${SRCS})
