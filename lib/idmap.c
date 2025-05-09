@@ -12,12 +12,11 @@
 #include <bingo/mempool.h>
 
 #define IDMAP_INIT_SIZE 4
-#define ASSERT          assert
 
 BINGO_HIDE void
 idmap_init_cap(idmap_t *idmap, size_t cap)
 {
-    ASSERT(idmap);
+    assert(idmap);
     *idmap = (idmap_t){
         .items    = (uint64_t *)mempool_alloc(sizeof(uint64_t) * cap),
         .capacity = cap,
@@ -34,7 +33,7 @@ idmap_init(idmap_t *idmap)
 BINGO_HIDE void
 idmap_fini(idmap_t *idmap)
 {
-    ASSERT(idmap);
+    assert(idmap);
     if (idmap->items)
         mempool_free(idmap->items);
     memset(idmap, 0, sizeof(idmap_t));
@@ -49,8 +48,8 @@ idmap_size(idmap_t *idmap)
 static inline size_t
 _idmap_find(idmap_t *idmap, uint64_t id, size_t *empty)
 {
-    ASSERT(idmap);
-    ASSERT(idmap->size == 0 || idmap->items);
+    assert(idmap);
+    assert(idmap->size == 0 || idmap->items);
     if (empty)
         *empty = idmap->size;
 

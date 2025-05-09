@@ -21,8 +21,6 @@
 #include <bingo/module.h>
 #include <bingo/switcher.h>
 
-#define ASSERT assert
-
 #ifndef SWITCHER_LOG
     #undef log_debugf
     #define log_debugf(...)                                                    \
@@ -113,8 +111,8 @@ switcher_wake(thread_id id, nanosec_t slack)
     log_debugf("\t\t\t\tWAKE   thread %" PRIu64 "\n", id);
 
     vmutex_acquire(&_switcher.mutex);
-    ASSERT(_switcher.next == NO_THREAD);
-    ASSERT(id != NO_THREAD);
+    assert(_switcher.next == NO_THREAD);
+    assert(id != NO_THREAD);
 
     int bucket = id % SWITCHER_NBUCKETS;
 
