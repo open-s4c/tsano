@@ -3,11 +3,9 @@
  * SPDX-License-Identifier: MIT
  */
 
-extern "C" {
 #include <dice/intercept/cxa.h>
 #include <dice/interpose.h>
 #include <dice/pubsub.h>
-}
 
 INTERPOSE(int, __cxa_guard_acquire, void *addr)
 {

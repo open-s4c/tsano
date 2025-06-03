@@ -8,10 +8,18 @@ project(
   VERSION 0.2)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_INTERPROCEDURAL_OPTIMIZATION on)
 
 add_compile_options(-Wall -Wextra -Werror -g3)
 
+# LTO setup
+if(CMAKE_SYSTEM_NAME MATCHES "NetBSD" AND "${CMAKE_C_COMPILER_ID}" MATCHES
+                                          "Clang")
+  add_compile_options(-flto -ffat-lto-objects)
+else()
+  set(CMAKE_INTERPROCEDURAL_OPTIMIZATION on)
+endif()
+
+# POSIX extensions
 if(CMAKE_SYSTEM_NAME MATCHES "NetBSD")
   add_compile_options(-D_XOPEN_SOURCE=700)
 else()

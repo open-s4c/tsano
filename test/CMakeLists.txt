@@ -44,3 +44,5 @@ foreach(SRC ${SRCS})
   get_filename_component(TARGET ${SRC} NAME_WLE)
   target_link_libraries(${TARGET} PRIVATE pthread)
 endforeach()
+
+add_subdirectory(interpose)

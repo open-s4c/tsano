@@ -5,71 +5,96 @@
 #include <dice/intercept/malloc.h>
 #include <dice/interpose.h>
 
-INTERPOSE(void *, malloc, size_t n)
+INTERPOSE(void *, malloc, size_t size)
 {
-    struct malloc_event ev = {.size = n, .pc = INTERPOSE_PC};
+    struct malloc_event ev = {
+        .pc   = INTERPOSE_PC,
+        .size = size,
+        .ret  = 0,
+    };
 
     metadata_t md = {0};
     PS_PUBLISH(INTERCEPT_BEFORE, EVENT_MALLOC, &ev, &md);
-    ev.ptr = REAL(malloc, n);
+    ev.ret = REAL(malloc, size);
     PS_PUBLISH(INTERCEPT_AFTER, EVENT_MALLOC, &ev, &md);
-    return ev.ptr;
+    return ev.ret;
 }
 
-INTERPOSE(void *, calloc, size_t n, size_t s)
+INTERPOSE(void *, calloc, size_t number, size_t size)
 {
-    struct malloc_event ev = {.size = n * s, .pc = INTERPOSE_PC};
+    struct calloc_event ev = {
+        .pc   = INTERPOSE_PC,
+        .size = number * size,
+        .ret  = 0,
+    };
 
     metadata_t md = {0};
     PS_PUBLISH(INTERCEPT_BEFORE, EVENT_CALLOC, &ev, &md);
-    ev.ptr = REAL(calloc, n, s);
+    ev.ret = REAL(calloc, number, size);
     PS_PUBLISH(INTERCEPT_AFTER, EVENT_CALLOC, &ev, &md);
-    return ev.ptr;
+    return ev.ret;
 }
 
-INTERPOSE(void *, realloc, void *p, size_t n)
+INTERPOSE(void *, realloc, void *ptr, size_t size)
 {
-    struct malloc_event ev = {.ptr = p, .size = n, .pc = INTERPOSE_PC};
+    struct realloc_event ev = {
+        .pc   = INTERPOSE_PC,
+        .ptr  = ptr,
+        .size = size,
+        .ret  = 0,
+    };
 
     metadata_t md = {0};
     PS_PUBLISH(INTERCEPT_BEFORE, EVENT_REALLOC, &ev, &md);
-    ev.ptr = REAL(realloc, p, n);
+    ev.ret = REAL(realloc, ptr, size);
     PS_PUBLISH(INTERCEPT_AFTER, EVENT_REALLOC, &ev, &md);
-    return ev.ptr;
+    return ev.ret;
 }
 
-INTERPOSE(void, free, void *p)
+INTERPOSE(void, free, void *ptr)
 {
-    struct malloc_event ev = {.ptr = p, .pc = INTERPOSE_PC};
+    struct free_event ev = {
+        .pc  = INTERPOSE_PC,
+        .ptr = ptr,
+    };
 
     metadata_t md = {0};
     PS_PUBLISH(INTERCEPT_BEFORE, EVENT_FREE, &ev, &md);
-    REAL(free, p);
+    REAL(free, ptr);
     PS_PUBLISH(INTERCEPT_AFTER, EVENT_FREE, &ev, &md);
 }
 
-INTERPOSE(int, posix_memalign, void **memptr, size_t alignment, size_t size)
+INTERPOSE(int, posix_memalign, void **ptr, size_t alignment, size_t size)
 {
-    struct malloc_event ev = {.ptr  = (void *)memptr,
-                              .size = size,
-                              .pc   = INTERPOSE_PC};
+    struct posix_memalign_event ev = {
+        .pc        = INTERPOSE_PC,
+        .ptr       = ptr,
+        .alignment = alignment,
+        .size      = size,
+        .ret       = 0,
+    };
 
     metadata_t md = {0};
     PS_PUBLISH(INTERCEPT_BEFORE, EVENT_POSIX_MEMALIGN, &ev, &md);
-    ev.ret = REAL(posix_memalign, memptr, alignment, size);
+    ev.ret = REAL(posix_memalign, ptr, alignment, size);
     PS_PUBLISH(INTERCEPT_AFTER, EVENT_POSIX_MEMALIGN, &ev, &md);
     return ev.ret;
 }
 
 INTERPOSE(void *, aligned_alloc, size_t alignment, size_t size)
 {
-    struct malloc_event ev = {.size = size, .pc = INTERPOSE_PC};
+    struct aligned_alloc_event ev = {
+        .pc        = INTERPOSE_PC,
+        .alignment = alignment,
+        .size      = size,
+        .ret       = 0,
+    };
 
     metadata_t md = {0};
     PS_PUBLISH(INTERCEPT_BEFORE, EVENT_ALIGNED_ALLOC, &ev, &md);
-    ev.ptr = REAL(aligned_alloc, alignment, size);
+    ev.ret = REAL(aligned_alloc, alignment, size);
     PS_PUBLISH(INTERCEPT_AFTER, EVENT_ALIGNED_ALLOC, &ev, &md);
-    return ev.ptr;
+    return ev.ret;
 }
 
 DICE_MODULE_INIT()

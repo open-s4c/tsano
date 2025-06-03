@@ -8,7 +8,7 @@ add_custom_target(
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/tsan.c.in)
 add_dependencies(tsan.c tmplr)
 
-file(GLOB SRCS *.c *.cpp)
+file(GLOB SRCS *.c)
 foreach(SRC ${SRCS})
   get_filename_component(MODULE ${SRC} NAME_WLE)
   set(TARGET mod-${MODULE})
@@ -19,6 +19,10 @@ foreach(SRC ${SRCS})
 
   add_library(${TARGET}.o OBJECT ${SRC})
   target_link_libraries(${TARGET}.o PRIVATE dice.h)
+
+  add_library(${TARGET}_testing.o OBJECT ${SRC})
+  target_link_libraries(${TARGET}_testing.o PRIVATE dice.h)
+  target_compile_options(${TARGET}_testing.o PRIVATE -DDICE_TEST_INTERPOSE)
 endforeach()
 
 target_sources(mod-autocept PRIVATE autocept_list.S)

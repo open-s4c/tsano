@@ -17,8 +17,41 @@
 struct malloc_event {
     const void *pc;
     size_t size;
+    void *ret;
+};
+
+struct calloc_event {
+    const void *pc;
+    size_t number;
+    size_t size;
+    void *ret;
+};
+
+struct realloc_event {
+    const void *pc;
     void *ptr;
+    size_t size;
+    void *ret;
+};
+
+struct free_event {
+    const void *pc;
+    void *ptr;
+};
+
+struct posix_memalign_event {
+    const void *pc;
+    void **ptr;
+    size_t alignment;
+    size_t size;
     int ret;
+};
+
+struct aligned_alloc_event {
+    const void *pc;
+    size_t alignment;
+    size_t size;
+    void *ret;
 };
 
 #endif /* DICE_MALLOC_H */

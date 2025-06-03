@@ -66,7 +66,7 @@ mempool_init(size_t cap)
 {
     _mp.allocated = 0;
     memset(&_mp.stack, 0, sizeof(entry_t *) * NSTACKS);
-    _mp.pool.memory = REAL_CALL(malloc, cap);
+    _mp.pool.memory = REAL_CALL(malloc, 0, cap);
     assert(_mp.pool.memory);
     memset(_mp.pool.memory, 0, cap);
     _mp.pool.capacity = cap;
