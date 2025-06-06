@@ -37,5 +37,6 @@ add_subdirectory(include)
 add_subdirectory(src)
 add_subdirectory(test)
 add_subdirectory(bench/micro)
+add_subdirectory(bench/lib)
 
 install(TARGETS dice dice.h EXPORT ${PROJECT_TARGETS})

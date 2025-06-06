@@ -8,6 +8,10 @@ CURDIR!=	pwd
 ROOT!=		readlink -f $(CURDIR)/../..
 DBDIR=		/tmp/bench.db
 COMMAND=	./db_bench --db=$(DBDIR)
+SOEXT!=		if [ "$(uname)" = "Darwin" ]; \
+		then echo .dylib; \
+		else echo .so; \
+		fi
 CONFIGURE=	cmake -S ../../leveldb -DCMAKE_BUILD_TYPE=Release \
 			-DHAVE_STD_REGEX=ON -DRUN_HAVE_STD_REGEX=1
 BUILD= 		$(MAKE)
@@ -68,24 +72,39 @@ RUN.tsano=	TSANO_LIBDIR=$(ROOT)/build/deps/tsano \
 		$(ROOT)/deps/tsano/tsano $(RUNCMD)
 PRO.tsano=	$(PARSE)
 
-
 TARGET+=	core
 DEP.core=	.tsan.bld
 DIR.core=	$(DIR.tsan)
 RUN.core=	$(ROOT)/scripts/dice $(RUNCMD)
 PRO.core=	$(PARSE)
 
-TARGET+=	dice
-DEP.dice=	.tsan.bld
-DIR.dice=	$(DIR.tsan)
-RUN.dice=	$(ROOT)/scripts/dice -pthread -tsan $(RUNCMD)
-PRO.dice=	$(PARSE)
+TARGET+=	intercept
+DEP.intercept=	.tsan.bld
+DIR.intercept=	$(DIR.tsan)
+RUN.intercept=	$(ROOT)/scripts/dice -pthread -tsan $(RUNCMD)
+PRO.intercept=	$(PARSE)
 
 TARGET+=	self
 DEP.self=	.tsan.bld
 DIR.self=	$(DIR.tsan)
 RUN.self=	$(ROOT)/scripts/dice -self -pthread -tsan $(RUNCMD)
 PRO.self=	$(PARSE)
+
+TARGET+=	bundle
+DEP.bundle=	.tsan.bld
+DIR.bundle=	$(DIR.tsan)
+RUN.bundle=	$(ROOT)/scripts/dice \
+		-with $(ROOT)/build/bench/lib/libdice-bundle$(SOEXT) \
+		$(RUNCMD)
+PRO.bundle=	$(PARSE)
+
+TARGET+=	fastch
+DEP.fastch=	.tsan.bld
+DIR.fastch=	$(DIR.tsan)
+RUN.fastch=	$(ROOT)/scripts/dice \
+		-with $(ROOT)/build/bench/lib/libdice-fastch$(SOEXT) \
+		$(RUNCMD)
+PRO.fastch=	$(PARSE)
 
 # ------------------------------------------------------------------------------
 include ../bench.mk
