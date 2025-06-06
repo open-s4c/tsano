@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include <string.h>
 
+
 /* empty tsan initialization */
 void
 __tsan_init()
@@ -328,6 +329,7 @@ __tsan_atomic64_store(volatile uint64_t *a, uint64_t v, int mo)
     __atomic_store_n(a, v, __ATOMIC_SEQ_CST);
 }
 
+
 /* xchg */
 uint8_t
 __tsan_atomic8_exchange(volatile uint8_t *a, uint8_t v, int mo)
@@ -499,6 +501,7 @@ __tsan_atomic64_fetch_nand(volatile uint64_t *a, uint64_t v, int mo)
     (void)mo;
     return __atomic_fetch_nand(a, v, __ATOMIC_SEQ_CST);
 }
+
 
 /* compare_exchange_{strong,weak} */
 int
