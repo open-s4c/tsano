@@ -36,6 +36,19 @@ PRELOAD="$LIBDICE"
 args=""
 while [ "$#" != "0" ]; do
     case "$1" in
+        -self)
+            PRELOAD="$PRELOAD:$DICE_DIR/mod-self.$SO"
+        ;;
+        -tsan)
+            PRELOAD="$PRELOAD:$DICE_DIR/mod-tsan.$SO"
+            PRELOAD="$PRELOAD:$DICE_DIR/mod-stacktrace.$SO"
+        ;;
+        -pthread)
+            PRELOAD="$PRELOAD:$DICE_DIR/mod-pthread_create.$SO"
+            PRELOAD="$PRELOAD:$DICE_DIR/mod-pthread_mutex.$SO"
+            PRELOAD="$PRELOAD:$DICE_DIR/mod-pthread_cond.$SO"
+            PRELOAD="$PRELOAD:$DICE_DIR/mod-pthread_rwlock.$SO"
+        ;;
         -autocept)
             PRELOAD="$PRELOAD:$DICE_DIR/mod-autocept.$SO"
         ;;
