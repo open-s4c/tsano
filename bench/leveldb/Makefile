@@ -4,7 +4,8 @@
 # ------------------------------------------------------------------------------
 # Commands and variables for all LevelDB benchmark variants
 # ------------------------------------------------------------------------------
-ROOT!=		pwd
+CURDIR!=	pwd
+ROOT!=		readlink -f $(CURDIR)/../..
 DBDIR=		/tmp/bench.db
 COMMAND=	./db_bench --db=$(DBDIR)
 CONFIGURE=	cmake -S ../../leveldb -DCMAKE_BUILD_TYPE=Release \
@@ -12,11 +13,11 @@ CONFIGURE=	cmake -S ../../leveldb -DCMAKE_BUILD_TYPE=Release \
 BUILD= 		$(MAKE)
 PREPARE= 	rm -rf $(DBDIR) && $(COMMAND) --threads=1 --benchmarks=fillseq
 RUNCMD= 	$(COMMAND) --threads=1 --benchmarks=readrandom --duration=10
-PARSE=		cat $(ROOT)/$*.run.log  \
+PARSE=		cat $(CURDIR)/$*.run.log  \
 		| grep benchstats \
 		| cut -d: -f2 \
 		| xargs -n1 echo "$*"';' \
-		| tee -a $(ROOT)/results.csv
+		| tee -a $(CURDIR)/results.csv
 
 # ------------------------------------------------------------------------------
 # clone level, apply patches, build dice
@@ -34,7 +35,7 @@ TARGET+=	patch
 DEP.patch=	.clone.bld
 DIR.patch=	leveldb
 CFG.patch=	git checkout .
-BLD.patch=	git apply $(ROOT)/patches/01-leveldb
+BLD.patch=	git apply $(CURDIR)/patches/01-leveldb
 
 # ------------------------------------------------------------------------------
 # Variants
@@ -63,20 +64,28 @@ PRO.tsan=	$(PARSE)
 TARGET+=	tsano
 DEP.tsano=	.tsan.bld
 DIR.tsano=	$(DIR.tsan)
-RUN.tsano=	$(ROOT)/../../scripts/tsano $(RUNCMD)
+RUN.tsano=	TSANO_LIBDIR=$(ROOT)/build/deps/tsano \
+		$(ROOT)/deps/tsano/tsano $(RUNCMD)
 PRO.tsano=	$(PARSE)
+
+
+TARGET+=	core
+DEP.core=	.tsan.bld
+DIR.core=	$(DIR.tsan)
+RUN.core=	$(ROOT)/scripts/dice $(RUNCMD)
+PRO.core=	$(PARSE)
 
 TARGET+=	dice
 DEP.dice=	.tsan.bld
 DIR.dice=	$(DIR.tsan)
-RUN.dice=	$(ROOT)/../../scripts/dice $(RUNCMD)
+RUN.dice=	$(ROOT)/scripts/dice -pthread -tsan $(RUNCMD)
 PRO.dice=	$(PARSE)
 
-TARGET+=	builtin
-DEP.builtin=	.tsan.bld
-DIR.builtin=	$(DIR.tsan)
-RUN.builtin=	$(ROOT)/../../scripts/dice-builtin $(RUNCMD)
-PRO.builtin=	$(PARSE)
+TARGET+=	self
+DEP.self=	.tsan.bld
+DIR.self=	$(DIR.tsan)
+RUN.self=	$(ROOT)/scripts/dice -self -pthread -tsan $(RUNCMD)
+PRO.self=	$(PARSE)
 
 # ------------------------------------------------------------------------------
 include ../bench.mk

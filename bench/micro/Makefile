@@ -23,7 +23,7 @@ LIBPATH=	$(WORK)/lib:$(WORK)/lib/dice
 
 TARGET+=	baseline
 DEP.baseline=	.lib.bld
-BLD.baseline=	$(CC) -o micro $(ROOT)/micro.c \
+BLD.baseline=	$(CC) -o micro $(ROOT)/micro.c -D_GNU_SOURCE \
 			-L$(WORK)/lib -I$(WORK)/include -ldice -lpthread
 RUN.baseline=   env LD_LIBRARY_PATH=$(LIBPATH) ./micro
 
