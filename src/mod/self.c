@@ -258,7 +258,7 @@ PS_SUBSCRIBE(INTERCEPT_EVENT, EVENT_THREAD_FINI, {
      * pthread library implements the exit of the thread. For example, in
      * NetBSD 10.1, pthread_exit is called after the thread returns from its run
      * routine. */
-    if (!td) {
+    if (td) {
         self_guard(CAPTURE_EVENT, EVENT_THREAD_FINI, 0, td);
         _self_destruct(td);
     }
