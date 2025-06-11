@@ -4,8 +4,7 @@
 # ------------------------------------------------------------------------------
 # Commands and variables for all LevelDB benchmark variants
 # ------------------------------------------------------------------------------
-CURDIR!=	pwd
-ROOT!=		readlink -f $(CURDIR)/../..
+PROJECT!=	readlink -f $(ROOTDIR)/../..
 DBDIR=		/tmp/bench.db
 COMMAND=	./db_bench --db=$(DBDIR)
 SOEXT!=		if [ "$(uname)" = "Darwin" ]; \
@@ -17,11 +16,11 @@ CONFIGURE=	cmake -S ../../leveldb -DCMAKE_BUILD_TYPE=Release \
 BUILD= 		$(MAKE)
 PREPARE= 	rm -rf $(DBDIR) && $(COMMAND) --threads=1 --benchmarks=fillseq
 RUNCMD= 	$(COMMAND) --threads=1 --benchmarks=readrandom --duration=10
-PARSE=		cat $(CURDIR)/$*.run.log  \
+PARSE=		cat $(WORKDIR)/$*.run.log  \
 		| grep benchstats \
 		| cut -d: -f2 \
 		| xargs -n1 echo "$*"';' \
-		| tee -a $(CURDIR)/results.csv
+		| tee -a $(WORKDIR)/results.csv
 
 # ------------------------------------------------------------------------------
 # clone level, apply patches, build dice
@@ -39,7 +38,7 @@ TARGET+=	patch
 DEP.patch=	.clone.bld
 DIR.patch=	leveldb
 CFG.patch=	git checkout .
-BLD.patch=	git apply $(CURDIR)/patches/01-leveldb
+BLD.patch=	git apply $(ROOTDIR)/patches/01-leveldb
 
 # ------------------------------------------------------------------------------
 # Variants
@@ -50,12 +49,11 @@ DEP.baseline=	.patch.bld
 DIR.baseline=	build/leveldb
 CFG.baseline= 	$(CONFIGURE)
 BLD.baseline=	$(BUILD)
-PRE.baseline= 	$(PREPARE)
-RUN.baseline= 	$(RUNCMD)
+RUN.baseline= 	$(PREPARE) && $(RUNCMD)
 PRO.baseline=	$(PARSE)
 
 TARGET+=	tsan
-DEP.tsan=	.baseline.pre
+DEP.tsan=	.baseline.run
 DIR.tsan=	build/leveldb-tsan
 CFG.tsan= 	$(CONFIGURE) -DCMAKE_CXX_FLAGS=-fsanitize=thread
 BLD.tsan=	$(BUILD)
@@ -68,43 +66,44 @@ PRO.tsan=	$(PARSE)
 TARGET+=	tsano
 DEP.tsano=	.tsan.bld
 DIR.tsano=	$(DIR.tsan)
-RUN.tsano=	TSANO_LIBDIR=$(ROOT)/build/deps/tsano \
-		$(ROOT)/deps/tsano/tsano $(RUNCMD)
+RUN.tsano=	TSANO_LIBDIR=$(PROJECT)/build/deps/tsano \
+		$(PROJECT)/deps/tsano/tsano $(RUNCMD)
 PRO.tsano=	$(PARSE)
 
 TARGET+=	core
 DEP.core=	.tsan.bld
 DIR.core=	$(DIR.tsan)
-RUN.core=	$(ROOT)/scripts/dice $(RUNCMD)
+RUN.core=	$(PROJECT)/scripts/dice $(RUNCMD)
 PRO.core=	$(PARSE)
 
 TARGET+=	intercept
 DEP.intercept=	.tsan.bld
 DIR.intercept=	$(DIR.tsan)
-RUN.intercept=	$(ROOT)/scripts/dice -pthread -tsan $(RUNCMD)
+RUN.intercept=	$(PROJECT)/scripts/dice -pthread -tsan $(RUNCMD)
 PRO.intercept=	$(PARSE)
 
 TARGET+=	self
 DEP.self=	.tsan.bld
 DIR.self=	$(DIR.tsan)
-RUN.self=	$(ROOT)/scripts/dice -self -pthread -tsan $(RUNCMD)
+RUN.self=	$(PROJECT)/scripts/dice -self -pthread -tsan $(RUNCMD)
 PRO.self=	$(PARSE)
 
 TARGET+=	bundle
 DEP.bundle=	.tsan.bld
 DIR.bundle=	$(DIR.tsan)
-RUN.bundle=	$(ROOT)/scripts/dice \
-		-with $(ROOT)/build/bench/lib/libdice-bundle$(SOEXT) \
+RUN.bundle=	$(PROJECT)/scripts/dice \
+		-with $(PROJECT)/build/bench/lib/libdice-bundle$(SOEXT) \
 		$(RUNCMD)
 PRO.bundle=	$(PARSE)
 
 TARGET+=	fastch
 DEP.fastch=	.tsan.bld
 DIR.fastch=	$(DIR.tsan)
-RUN.fastch=	$(ROOT)/scripts/dice \
-		-with $(ROOT)/build/bench/lib/libdice-fastch$(SOEXT) \
+RUN.fastch=	$(PROJECT)/scripts/dice \
+		-with $(PROJECT)/build/bench/lib/libdice-fastch$(SOEXT) \
 		$(RUNCMD)
 PRO.fastch=	$(PARSE)
 
 # ------------------------------------------------------------------------------
-include ../bench.mk
+BENCHMK= ../bench.mk
+include $(BENCHMK)
