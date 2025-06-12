@@ -18,26 +18,31 @@ CFG.dice=	cmake $(DICE) \
 		-DCMAKE_INSTALL_PREFIX=$(WORKDIR)
 BLD.dice=	$(MAKE) install
 
+
+TARGET+=	summary
+PRO.summary=	echo variant, nthreads, count, time_s > $(WORKDIR)/results.csv
+
 # ------------------------------------------------------------------------------
 # variants
 # ------------------------------------------------------------------------------
 
 LIBPATH=	$(WORK)/lib:$(WORK)/lib/dice
 
+
 TARGET+=	micro
-DEP.micro=	.dice.bld
+DEP.micro=	.dice.bld .summary.run
 RUN.micro=	env LD_LIBRARY_PATH=$(LIBPATH) $(BINDIR)/micro
-PRO.micro=	cat $(ROOTDIR)/$*.run.log | $(FORMAT) >> results.dat
+PRO.micro=	cat $(WORKDIR)/$*.run.log | $(FORMAT) >> $(WORKDIR)/results.csv
 
 TARGET+=	micro2
-DEP.micro2=	.dice.bld
+DEP.micro2=	.dice.bld .summary.run
 RUN.micro2=	env LD_LIBRARY_PATH=$(LIBPATH) $(BINDIR)/micro2
-PRO.micro2=	cat $(ROOTDIR)/$*.run.log | $(FORMAT) >> results.dat
+PRO.micro2=	cat $(WORKDIR)/$*.run.log | $(FORMAT) >> $(WORKDIR)/results.csv
 
 TARGET+=	micro3
-DEP.micro3=	.dice.bld
+DEP.micro3=	.dice.bld .summary.run
 RUN.micro3=	env LD_LIBRARY_PATH=$(LIBPATH) $(BINDIR)/micro3
-PRO.micro3=	cat $(ROOTDIR)/$*.run.log | $(FORMAT) >> results.dat
+PRO.micro3=	cat $(WORKDIR)/$*.run.log | $(FORMAT) >> $(WORKDIR)/results.csv
 
 # ------------------------------------------------------------------------------
 BENCHMK= ../bench.mk

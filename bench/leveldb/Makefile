@@ -40,16 +40,27 @@ DIR.patch=	leveldb
 CFG.patch=	git checkout .
 BLD.patch=	git apply $(ROOTDIR)/patches/01-leveldb
 
+
+TARGET+=	populate
+DEP.populate=	.patch.bld
+DIR.populate=	build/leveldb
+CFG.populate= 	$(CONFIGURE)
+BLD.populate=	$(BUILD)
+RUN.populate= 	$(PREPARE)
+
+TARGET+=	results
+PRO.results=	echo 'variant; time_s; count; count_1' > $(WORKDIR)/results.csv
+
 # ------------------------------------------------------------------------------
 # Variants
 # ------------------------------------------------------------------------------
 
 TARGET+=	baseline
-DEP.baseline=	.patch.bld
+DEP.baseline=	.populate.bld
 DIR.baseline=	build/leveldb
 CFG.baseline= 	$(CONFIGURE)
 BLD.baseline=	$(BUILD)
-RUN.baseline= 	$(PREPARE) && $(RUNCMD)
+RUN.baseline= 	$(RUNCMD)
 PRO.baseline=	$(PARSE)
 
 TARGET+=	tsan
