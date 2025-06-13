@@ -14,6 +14,7 @@ OPTION_SUM_LEVELDB=yes
 OPTION_WIKI=yes
 WIKI_URL=ssh://git@github.com/open-s4c/dice.wiki.git
 FORCE_SUMMARY=
+MAKE=make
 
 enabled() {
     if [ -z "$1" ] || [ "$1" != "yes" ]
@@ -39,11 +40,11 @@ fi
 # RUN BENCHMARKS
 
 if enabled $OPTION_RUN_MICRO; then
-    make -sC bench/micro run
+    $MAKE -sC bench/micro run
 fi
 
 if enabled $OPTION_RUN_LEVELDB; then
-    make -sC bench/leveldb run
+    $MAKE -sC bench/leveldb run
 fi
 
 # SUMMARY
@@ -66,7 +67,7 @@ output "- Tag:  $(git rev-parse --short HEAD)"
 output "> $(uname -a)"
 
 if enabled $OPTION_SUM_MICRO; then
-    make -sC bench/micro process FORCE=$FORCE_SUMMARY
+    $MAKE -sC bench/micro process FORCE=$FORCE_SUMMARY
 
     output
     output "## Microbenchmarks"
@@ -74,7 +75,7 @@ if enabled $OPTION_SUM_MICRO; then
 fi
 
 if enabled $OPTION_SUM_LEVELDB; then
-    make -sC bench/leveldb process FORCE=$FORCE_SUMMARY
+    $MAKE -sC bench/leveldb process FORCE=$FORCE_SUMMARY
 
     output
     output "## LevelDB"
