@@ -11,6 +11,7 @@
  ******************************************************************************/
 #include <stdint.h>
 #include <string.h>
+#include <stdlib.h>
 
 
 /* empty tsan initialization */
@@ -113,103 +114,122 @@ __tsan_memcpy(void *dst, const void *src, size_t len)
 {
     return memcpy(dst, src, len);
 }
+void *
+__tsan_memmove(void *dst, const void *src, size_t len)
+{
+    return memmove(dst, src, len);
+}
+/* C++ new and delete */
+void *_Znwm(size_t n) {
+    return malloc(n);
+}
+void *_Znam(size_t n) {
+    return malloc(n);
+}
+void _ZdlPv(void *ptr) {
+    return free(ptr);
+}
+void _ZdaPv(void *ptr) {
+    return free(ptr);
+}
+
 /* plain reads and writes */
-void
+__attribute__((weak)) void
 __tsan_read1(void *a)
 {
     (void)a;
 }
-void
+__attribute__((weak)) void
 __tsan_read2(void *a)
 {
     (void)a;
 }
-void
+__attribute__((weak)) void
 __tsan_read4(void *a)
 {
     (void)a;
 }
-void
+__attribute__((weak)) void
 __tsan_read8(void *a)
 {
     (void)a;
 }
-void
+__attribute__((weak)) void
 __tsan_read16(void *a)
 {
     (void)a;
 }
-void
+__attribute__((weak)) void
 __tsan_write1(void *a)
 {
     (void)a;
 }
-void
+__attribute__((weak)) void
 __tsan_write2(void *a)
 {
     (void)a;
 }
-void
+__attribute__((weak)) void
 __tsan_write4(void *a)
 {
     (void)a;
 }
-void
+__attribute__((weak)) void
 __tsan_write8(void *a)
 {
     (void)a;
 }
-void
+__attribute__((weak)) void
 __tsan_write16(void *a)
 {
     (void)a;
 }
-void
+__attribute__((weak)) void
 __tsan_unaligned_read1(void *a)
 {
     (void)a;
 }
-void
+__attribute__((weak)) void
 __tsan_unaligned_read2(void *a)
 {
     (void)a;
 }
-void
+__attribute__((weak)) void
 __tsan_unaligned_read4(void *a)
 {
     (void)a;
 }
-void
+__attribute__((weak)) void
 __tsan_unaligned_read8(void *a)
 {
     (void)a;
 }
-void
+__attribute__((weak)) void
 __tsan_unaligned_read16(void *a)
 {
     (void)a;
 }
-void
+__attribute__((weak)) void
 __tsan_unaligned_write1(void *a)
 {
     (void)a;
 }
-void
+__attribute__((weak)) void
 __tsan_unaligned_write2(void *a)
 {
     (void)a;
 }
-void
+__attribute__((weak)) void
 __tsan_unaligned_write4(void *a)
 {
     (void)a;
 }
-void
+__attribute__((weak)) void
 __tsan_unaligned_write8(void *a)
 {
     (void)a;
 }
-void
+__attribute__((weak)) void
 __tsan_unaligned_write16(void *a)
 {
     (void)a;
@@ -514,7 +534,7 @@ __tsan_atomic8_compare_exchange_strong(volatile uint8_t *a, uint8_t *c,
 }
 int
 __tsan_atomic16_compare_exchange_strong(volatile uint16_t *a, uint16_t *c,
-                                        uint16_t v, int mo)
+                                       uint16_t v, int mo)
 {
     (void)mo;
     return __atomic_compare_exchange_n(a, c, v, 0, __ATOMIC_SEQ_CST,
@@ -522,7 +542,7 @@ __tsan_atomic16_compare_exchange_strong(volatile uint16_t *a, uint16_t *c,
 }
 int
 __tsan_atomic32_compare_exchange_strong(volatile uint32_t *a, uint32_t *c,
-                                        uint32_t v, int mo)
+                                       uint32_t v, int mo)
 {
     (void)mo;
     return __atomic_compare_exchange_n(a, c, v, 0, __ATOMIC_SEQ_CST,
@@ -530,15 +550,15 @@ __tsan_atomic32_compare_exchange_strong(volatile uint32_t *a, uint32_t *c,
 }
 int
 __tsan_atomic64_compare_exchange_strong(volatile uint64_t *a, uint64_t *c,
-                                        uint64_t v, int mo)
+                                       uint64_t v, int mo)
 {
     (void)mo;
     return __atomic_compare_exchange_n(a, c, v, 0, __ATOMIC_SEQ_CST,
                                        __ATOMIC_SEQ_CST);
 }
 int
-__tsan_atomic8_compare_exchange_weak(volatile uint8_t *a, uint8_t *c, uint8_t v,
-                                     int mo)
+__tsan_atomic8_compare_exchange_weak(volatile uint8_t *a, uint8_t *c,
+                                       uint8_t v, int mo)
 {
     (void)mo;
     return __atomic_compare_exchange_n(a, c, v, 1, __ATOMIC_SEQ_CST,
@@ -546,7 +566,7 @@ __tsan_atomic8_compare_exchange_weak(volatile uint8_t *a, uint8_t *c, uint8_t v,
 }
 int
 __tsan_atomic16_compare_exchange_weak(volatile uint16_t *a, uint16_t *c,
-                                      uint16_t v, int mo)
+                                       uint16_t v, int mo)
 {
     (void)mo;
     return __atomic_compare_exchange_n(a, c, v, 1, __ATOMIC_SEQ_CST,
@@ -554,7 +574,7 @@ __tsan_atomic16_compare_exchange_weak(volatile uint16_t *a, uint16_t *c,
 }
 int
 __tsan_atomic32_compare_exchange_weak(volatile uint32_t *a, uint32_t *c,
-                                      uint32_t v, int mo)
+                                       uint32_t v, int mo)
 {
     (void)mo;
     return __atomic_compare_exchange_n(a, c, v, 1, __ATOMIC_SEQ_CST,
@@ -562,7 +582,7 @@ __tsan_atomic32_compare_exchange_weak(volatile uint32_t *a, uint32_t *c,
 }
 int
 __tsan_atomic64_compare_exchange_weak(volatile uint64_t *a, uint64_t *c,
-                                      uint64_t v, int mo)
+                                       uint64_t v, int mo)
 {
     (void)mo;
     return __atomic_compare_exchange_n(a, c, v, 1, __ATOMIC_SEQ_CST,
@@ -571,8 +591,8 @@ __tsan_atomic64_compare_exchange_weak(volatile uint64_t *a, uint64_t *c,
 
 /* compare_exchange_val */
 uint8_t
-__tsan_atomic8_compare_exchange_val(volatile uint8_t *a, uint8_t c, uint8_t v,
-                                    int mo)
+__tsan_atomic8_compare_exchange_val(volatile uint8_t *a, uint8_t c,
+                                       uint8_t v, int mo)
 {
     (void)mo;
     (void)__atomic_compare_exchange_n(a, &c, v, 0, __ATOMIC_SEQ_CST,
@@ -581,7 +601,7 @@ __tsan_atomic8_compare_exchange_val(volatile uint8_t *a, uint8_t c, uint8_t v,
 }
 uint16_t
 __tsan_atomic16_compare_exchange_val(volatile uint16_t *a, uint16_t c,
-                                     uint16_t v, int mo)
+                                       uint16_t v, int mo)
 {
     (void)mo;
     (void)__atomic_compare_exchange_n(a, &c, v, 0, __ATOMIC_SEQ_CST,
@@ -590,7 +610,7 @@ __tsan_atomic16_compare_exchange_val(volatile uint16_t *a, uint16_t c,
 }
 uint32_t
 __tsan_atomic32_compare_exchange_val(volatile uint32_t *a, uint32_t c,
-                                     uint32_t v, int mo)
+                                       uint32_t v, int mo)
 {
     (void)mo;
     (void)__atomic_compare_exchange_n(a, &c, v, 0, __ATOMIC_SEQ_CST,
@@ -599,7 +619,7 @@ __tsan_atomic32_compare_exchange_val(volatile uint32_t *a, uint32_t c,
 }
 uint64_t
 __tsan_atomic64_compare_exchange_val(volatile uint64_t *a, uint64_t c,
-                                     uint64_t v, int mo)
+                                       uint64_t v, int mo)
 {
     (void)mo;
     (void)__atomic_compare_exchange_n(a, &c, v, 0, __ATOMIC_SEQ_CST,
