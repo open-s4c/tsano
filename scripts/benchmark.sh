@@ -12,7 +12,7 @@ OPTION_SUM_MICRO=yes
 OPTION_RUN_LEVELDB=yes
 OPTION_SUM_LEVELDB=yes
 OPTION_WIKI=yes
-WIKI_URL=ssh://git@github.com/open-s4c/dice.wiki.git
+WIKI_URL="ssh://git@github.com/open-s4c/dice.wiki.git"
 FORCE_SUMMARY=
 MAKE=make
 
@@ -50,7 +50,7 @@ fi
 # SUMMARY
 
 DATE=$(date "+%Y-%m-%d")
-HOST=$(hostname)
+HOST=$(hostname -s)
 SUMMARY=bench-$HOST-$DATE.md
 
 rm -f $SUMMARY
@@ -89,7 +89,7 @@ fi
 if enabled $OPTION_WIKI; then
 
     if [ ! -d dice.wiki ]; then
-        git clone WIKI_URL
+        git clone $WIKI_URL
     fi
 
     if [ -d dice.wiki ]; then

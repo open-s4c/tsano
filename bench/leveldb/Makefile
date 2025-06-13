@@ -7,7 +7,8 @@
 PROJECT!=	readlink -f $(ROOTDIR)/../..
 DBDIR=		/tmp/bench.db
 COMMAND=	./db_bench --db=$(DBDIR)
-SOEXT!=		if [ "$(uname)" = "Darwin" ]; \
+OS!=		uname
+SOEXT!=		if [ "$(OS)" = "Darwin" ]; \
 		then echo .dylib; \
 		else echo .so; \
 		fi
