@@ -10,8 +10,10 @@
 #include <string.h>
 #include <unistd.h>
 
+#define VERSION "1.2"
+
 /*******************************************************************************
- * tmplr v1.1 - a template replacement tool
+ * tmplr - a template replacement tool
  *
  * tmplr is a simple tool to achieve a minimum level of genericity without
  * resorting to C preprocessor macros.
@@ -161,6 +163,8 @@ static bool _verbose;
 #define TMPL_SUFFIX_UNMUTE "_unmute"
 #define TMPL_SUFFIX_ABORT  "_abort"
 #define TMPL_SUFFIX_SKIP   "_skip"
+#define TMPL_SUFFIX_KILL   "_kill"
+#define TMPL_SUFFIX_UNDO   "_undo"
 #define TMPL_SUFFIX_DL     "_dl"
 #define TMPL_SUFFIX_NL     "_nl"
 #define TMPL_SUFFIX_UPCASE "_upcase"
@@ -173,6 +177,8 @@ static char *TMPL_MUTE;
 static char *TMPL_UNMUTE;
 static char *TMPL_ABORT;
 static char *TMPL_SKIP;
+static char *TMPL_KILL;
+static char *TMPL_UNDO;
 static char *TMPL_DL;
 static char *TMPL_NL;
 static char *TMPL_UPCASE;
@@ -191,9 +197,10 @@ set_prefix(const char *prefix)
         char **cmd;
         const char *suffix;
     } cmds[] = {
-        CMD_PAIR(MAP),    CMD_PAIR(BEGIN),  CMD_PAIR(END),  CMD_PAIR(MUTE),
-        CMD_PAIR(UNMUTE), CMD_PAIR(ABORT),  CMD_PAIR(SKIP), CMD_PAIR(DL),
-        CMD_PAIR(NL),     CMD_PAIR(UPCASE), CMD_PAIR(HOOK), {NULL, NULL},
+        CMD_PAIR(MAP),    CMD_PAIR(BEGIN), CMD_PAIR(END),  CMD_PAIR(MUTE),
+        CMD_PAIR(UNMUTE), CMD_PAIR(ABORT), CMD_PAIR(SKIP), CMD_PAIR(KILL),
+        CMD_PAIR(UNDO),   CMD_PAIR(DL),    CMD_PAIR(NL),   CMD_PAIR(UPCASE),
+        CMD_PAIR(HOOK),   {NULL, NULL},
     };
 
     for (int i = 0; cmds[i].cmd != NULL; i++) {
@@ -208,7 +215,6 @@ set_prefix(const char *prefix)
         debugf("[CMD] %s\n", *cmds[i].cmd);
     }
 }
-
 
 /*******************************************************************************
  * Type definitions
@@ -226,7 +232,11 @@ typedef struct {
     const char *msg;
 } err_t;
 
-#define NO_ERROR (err_t){0}
+#define NO_ERROR                                                               \
+    (err_t)                                                                    \
+    {                                                                          \
+        0                                                                      \
+    }
 #define ERROR(m)                                                               \
     (err_t)                                                                    \
     {                                                                          \
@@ -358,6 +368,25 @@ clean(pair_t *map)
 }
 
 /*******************************************************************************
+ * options
+ ******************************************************************************/
+
+enum options { OPT_KV_SEP = 1, OPT_ITEM_SEP = 2, OPT_ITER_SEP = 3 };
+static struct {
+    char *val;
+} options[] = {[OPT_KV_SEP]   = {.val = ","},
+               [OPT_ITEM_SEP] = {.val = ","},
+               [OPT_ITER_SEP] = {.val = ";"}};
+#define OPTION(KEY) (options[OPT_##KEY].val)
+
+err_t
+set_option(enum options opt, char *val)
+{
+    options[opt].val = strdup(val);
+    return NO_ERROR;
+}
+
+/*******************************************************************************
  * parse functions
  ******************************************************************************/
 
@@ -367,9 +396,9 @@ parse_assign(pair_t *p, char *start, char *end)
     char key[K_BUF_LEN] = {0};
     char val[V_BUF_LEN] = {0};
 
-    char *comma = strstr(start, ",");
+    char *comma = strstr(start, OPTION(KV_SEP));
     if (comma == NULL)
-        return ERROR("expected ','");
+        return ERROR("expected separator");
     start++;
     strncat(key, start, comma - start);
     comma++;
@@ -386,7 +415,7 @@ parse_template_map(char *start, char *end)
     *end = '\0';
 
 again:
-    next = strstr(start, ",");
+    next = strstr(start, OPTION(ITEM_SEP));
     if (next) {
         *next = '\0';
         next++;
@@ -485,6 +514,13 @@ again:
         }
         if (strstr(buf, TMPL_SKIP))
             return false;
+        if ((cur = strstr(buf, TMPL_KILL)))
+            *cur = '\0';
+        if ((cur = strstr(buf, TMPL_UNDO))) {
+            size_t skip = strlen(TMPL_UNDO);
+            size_t len  = strlen(cur);
+            memmove(buf, cur + skip, len - skip + 1);
+        }
 
         const pair_t *pi = iteration_map + i;
         const pair_t *pp = persistent_map + i;
@@ -586,7 +622,7 @@ process_block(int i, const int nvars)
     char val[V_BUF_LEN] = {0};
     strcat(val, p->val);
 
-    const char *sep = ";";
+    const char *sep = OPTION(ITER_SEP);
     char *saveptr   = NULL;
 
     const char *sval_ = sticking(p->key);
@@ -808,7 +844,7 @@ main(int argc, char *argv[])
     debugf("vatomic generator\n");
     int c;
     char *k;
-    while ((c = getopt(argc, argv, "hivP:D:")) != -1) {
+    while ((c = getopt(argc, argv, "hisvP:D:")) != -1) {
         switch (c) {
             case 'D':
                 k    = strstr(optarg, "=");
@@ -824,15 +860,26 @@ main(int argc, char *argv[])
             case 'i':
                 read_stdin = true;
                 break;
+            case 's':
+                /* By default, item and iter separators are ',' and ';',
+                 * respectively. This option swaps them, so their use is:
+                 * Consider the following example:
+                 *     _begin(X = [[A;B]], Y = [[C;D]]).
+                 * Now, when pass -s option, the user would write:
+                 *     _begin(X = [[A;B]], Y = [[C;D]]).
+                 */
+                set_option(OPT_ITEM_SEP, ";");
+                set_option(OPT_ITER_SEP, ",");
+                break;
             case 'h':
-                printf("tmplr - a simple templating tool\n\n");
+                printf("tmplr v%s - a simple templating tool\n\n", VERSION);
                 printf("Usage:\n\ttmplr [FLAGS] <FILE> [FILE ...]\n\n");
                 printf("Flags:\n");
                 printf("\t-v            verbose\n");
-                printf(
-                    "\t-Dkey=value   override template map assignement of "
-                    "key\n");
+                printf("\t-Dkey=value   override template map assignement\n");
+                printf("\t-P PREFIX     use PREFIX instead of _tmpl prefix\n");
                 printf("\t-i            read stdin\n");
+                printf("\t-s            swap iterator and item separators\n");
                 exit(0);
             case '?':
                 printf("error");
