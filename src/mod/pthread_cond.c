@@ -10,9 +10,12 @@
 
 INTERPOSE(int, pthread_cond_wait, pthread_cond_t *cond, pthread_mutex_t *mutex)
 {
-    struct pthread_cond_event ev = {.cond  = cond,
-                                    .mutex = mutex,
-                                    .pc    = INTERPOSE_PC};
+    struct pthread_cond_wait_event ev = {
+        .pc    = INTERPOSE_PC,
+        .cond  = cond,
+        .mutex = mutex,
+        .ret   = 0,
+    };
 
     metadata_t md = {0};
     PS_PUBLISH(INTERCEPT_BEFORE, EVENT_COND_WAIT, &ev, &md);
@@ -24,10 +27,13 @@ INTERPOSE(int, pthread_cond_wait, pthread_cond_t *cond, pthread_mutex_t *mutex)
 INTERPOSE(int, pthread_cond_timedwait, pthread_cond_t *cond,
           pthread_mutex_t *mutex, const struct timespec *abstime)
 {
-    struct pthread_cond_event ev = {.cond    = cond,
-                                    .mutex   = mutex,
-                                    .abstime = abstime,
-                                    .pc      = INTERPOSE_PC};
+    struct pthread_cond_timedwait_event ev = {
+        .pc      = INTERPOSE_PC,
+        .cond    = cond,
+        .mutex   = mutex,
+        .abstime = abstime,
+        .ret     = 0,
+    };
 
     metadata_t md = {0};
     PS_PUBLISH(INTERCEPT_BEFORE, EVENT_COND_TIMEDWAIT, &ev, &md);
@@ -38,7 +44,11 @@ INTERPOSE(int, pthread_cond_timedwait, pthread_cond_t *cond,
 
 INTERPOSE(int, pthread_cond_signal, pthread_cond_t *cond)
 {
-    struct pthread_cond_event ev = {.cond = cond, .pc = INTERPOSE_PC};
+    struct pthread_cond_signal_event ev = {
+        .pc   = INTERPOSE_PC,
+        .cond = cond,
+        .ret  = 0,
+    };
 
     metadata_t md = {0};
     PS_PUBLISH(INTERCEPT_BEFORE, EVENT_COND_SIGNAL, &ev, &md);
@@ -49,7 +59,11 @@ INTERPOSE(int, pthread_cond_signal, pthread_cond_t *cond)
 
 INTERPOSE(int, pthread_cond_broadcast, pthread_cond_t *cond)
 {
-    struct pthread_cond_event ev = {.cond = cond, .pc = INTERPOSE_PC};
+    struct pthread_cond_broadcast_event ev = {
+        .pc   = INTERPOSE_PC,
+        .cond = cond,
+        .ret  = 0,
+    };
 
     metadata_t md = {0};
     PS_PUBLISH(INTERCEPT_BEFORE, EVENT_COND_BROADCAST, &ev, &md);

@@ -10,7 +10,11 @@
 
 INTERPOSE(int, pthread_mutex_lock, pthread_mutex_t *mutex)
 {
-    struct pthread_mutex_event ev = {.mutex = mutex, .pc = INTERPOSE_PC};
+    struct pthread_mutex_lock_event ev = {
+        .pc    = INTERPOSE_PC,
+        .mutex = mutex,
+        .ret   = 0,
+    };
 
     metadata_t md = {0};
     PS_PUBLISH(INTERCEPT_BEFORE, EVENT_MUTEX_LOCK, &ev, &md);
@@ -21,17 +25,18 @@ INTERPOSE(int, pthread_mutex_lock, pthread_mutex_t *mutex)
 
 #if !defined(__APPLE__)
 INTERPOSE(int, pthread_mutex_timedlock, pthread_mutex_t *mutex,
-          const struct timespec *abstime)
+          const struct timespec *timeout)
 {
-    struct pthread_mutex_event ev = {
+    struct pthread_mutex_timedlock_event ev = {
         .pc      = INTERPOSE_PC,
         .mutex   = mutex,
-        .abstime = abstime,
+        .timeout = timeout,
+        .ret     = 0,
     };
 
     metadata_t md = {0};
     PS_PUBLISH(INTERCEPT_BEFORE, EVENT_MUTEX_TIMEDLOCK, &ev, &md);
-    ev.ret = REAL(pthread_mutex_timedlock, mutex, abstime);
+    ev.ret = REAL(pthread_mutex_timedlock, mutex, timeout);
     PS_PUBLISH(INTERCEPT_AFTER, EVENT_MUTEX_TIMEDLOCK, &ev, &md);
     return ev.ret;
 }
@@ -39,7 +44,11 @@ INTERPOSE(int, pthread_mutex_timedlock, pthread_mutex_t *mutex,
 
 INTERPOSE(int, pthread_mutex_trylock, pthread_mutex_t *mutex)
 {
-    struct pthread_mutex_event ev = {.mutex = mutex, .pc = INTERPOSE_PC};
+    struct pthread_mutex_trylock_event ev = {
+        .pc    = INTERPOSE_PC,
+        .mutex = mutex,
+        .ret   = 0,
+    };
 
     metadata_t md = {0};
     PS_PUBLISH(INTERCEPT_BEFORE, EVENT_MUTEX_TRYLOCK, &ev, &md);
@@ -50,7 +59,11 @@ INTERPOSE(int, pthread_mutex_trylock, pthread_mutex_t *mutex)
 
 INTERPOSE(int, pthread_mutex_unlock, pthread_mutex_t *mutex)
 {
-    struct pthread_mutex_event ev = {.mutex = mutex, .pc = INTERPOSE_PC};
+    struct pthread_mutex_unlock_event ev = {
+        .pc    = INTERPOSE_PC,
+        .mutex = mutex,
+        .ret   = 0,
+    };
 
     metadata_t md = {0};
     PS_PUBLISH(INTERCEPT_BEFORE, EVENT_MUTEX_UNLOCK, &ev, &md);

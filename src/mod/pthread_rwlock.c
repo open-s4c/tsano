@@ -1,5 +1,5 @@
 /*
-ap* Copyright (C) Huawei Technologies Co., Ltd. 2025. All rights reserved.
+ * Copyright (C) Huawei Technologies Co., Ltd. 2025. All rights reserved.
  * SPDX-License-Identifier: MIT
  */
 #include <assert.h>
@@ -8,93 +8,115 @@ ap* Copyright (C) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 #include <dice/intercept/pthread.h>
 #include <dice/interpose.h>
 
-INTERPOSE(int, pthread_rwlock_rdlock, pthread_rwlock_t *rwlock)
+INTERPOSE(int, pthread_rwlock_rdlock, pthread_rwlock_t *lock)
 {
-    struct pthread_rwlock_event ev = {.rwlock = rwlock, .pc = INTERPOSE_PC};
+    struct pthread_rwlock_rdlock_event ev = {
+        .pc   = INTERPOSE_PC,
+        .lock = lock,
+        .ret  = 0,
+    };
 
     metadata_t md = {0};
     PS_PUBLISH(INTERCEPT_BEFORE, EVENT_RWLOCK_RDLOCK, &ev, &md);
-    ev.ret = REAL(pthread_rwlock_rdlock, rwlock);
+    ev.ret = REAL(pthread_rwlock_rdlock, lock);
     PS_PUBLISH(INTERCEPT_AFTER, EVENT_RWLOCK_RDLOCK, &ev, &md);
     return ev.ret;
 }
 
 #if !defined(__APPLE__)
-INTERPOSE(int, pthread_rwlock_timedrdlock, pthread_rwlock_t *rwlock,
+INTERPOSE(int, pthread_rwlock_timedrdlock, pthread_rwlock_t *lock,
           const struct timespec *abstime)
 {
-    struct pthread_rwlock_event ev = {
+    struct pthread_rwlock_timedrdlock_event ev = {
         .pc      = INTERPOSE_PC,
-        .rwlock  = rwlock,
+        .lock    = lock,
         .abstime = abstime,
+        .ret     = 0,
     };
 
     metadata_t md = {0};
     PS_PUBLISH(INTERCEPT_BEFORE, EVENT_RWLOCK_TIMEDRDLOCK, &ev, &md);
-    ev.ret = REAL(pthread_rwlock_timedrdlock, rwlock, abstime);
+    ev.ret = REAL(pthread_rwlock_timedrdlock, lock, abstime);
     PS_PUBLISH(INTERCEPT_AFTER, EVENT_RWLOCK_TIMEDRDLOCK, &ev, &md);
     return ev.ret;
 }
 #endif
 
-INTERPOSE(int, pthread_rwlock_tryrdlock, pthread_rwlock_t *rwlock)
+INTERPOSE(int, pthread_rwlock_tryrdlock, pthread_rwlock_t *lock)
 {
-    struct pthread_rwlock_event ev = {.rwlock = rwlock, .pc = INTERPOSE_PC};
+    struct pthread_rwlock_tryrdlock_event ev = {
+        .pc   = INTERPOSE_PC,
+        .lock = lock,
+        .ret  = 0,
+    };
 
     metadata_t md = {0};
     PS_PUBLISH(INTERCEPT_BEFORE, EVENT_RWLOCK_TRYRDLOCK, &ev, &md);
-    ev.ret = REAL(pthread_rwlock_tryrdlock, rwlock);
+    ev.ret = REAL(pthread_rwlock_tryrdlock, lock);
     PS_PUBLISH(INTERCEPT_AFTER, EVENT_RWLOCK_TRYRDLOCK, &ev, &md);
     return ev.ret;
 }
 
-INTERPOSE(int, pthread_rwlock_wrlock, pthread_rwlock_t *rwlock)
+INTERPOSE(int, pthread_rwlock_wrlock, pthread_rwlock_t *lock)
 {
-    struct pthread_rwlock_event ev = {.rwlock = rwlock, .pc = INTERPOSE_PC};
+    struct pthread_rwlock_wrlock_event ev = {
+        .pc   = INTERPOSE_PC,
+        .lock = lock,
+        .ret  = 0,
+    };
 
     metadata_t md = {0};
     PS_PUBLISH(INTERCEPT_BEFORE, EVENT_RWLOCK_WRLOCK, &ev, &md);
-    ev.ret = REAL(pthread_rwlock_wrlock, rwlock);
+    ev.ret = REAL(pthread_rwlock_wrlock, lock);
     PS_PUBLISH(INTERCEPT_AFTER, EVENT_RWLOCK_WRLOCK, &ev, &md);
     return ev.ret;
 }
 
 #if !defined(__APPLE__)
-INTERPOSE(int, pthread_rwlock_timedwrlock, pthread_rwlock_t *rwlock,
+INTERPOSE(int, pthread_rwlock_timedwrlock, pthread_rwlock_t *lock,
           const struct timespec *abstime)
 {
-    struct pthread_rwlock_event ev = {
+    struct pthread_rwlock_timedwrlock_event ev = {
         .pc      = INTERPOSE_PC,
-        .rwlock  = rwlock,
+        .lock    = lock,
         .abstime = abstime,
+        .ret     = 0,
     };
 
     metadata_t md = {0};
     PS_PUBLISH(INTERCEPT_BEFORE, EVENT_RWLOCK_TIMEDWRLOCK, &ev, &md);
-    ev.ret = REAL(pthread_rwlock_timedwrlock, rwlock, abstime);
+    ev.ret = REAL(pthread_rwlock_timedwrlock, lock, abstime);
     PS_PUBLISH(INTERCEPT_AFTER, EVENT_RWLOCK_TIMEDWRLOCK, &ev, &md);
     return ev.ret;
 }
 #endif
 
-INTERPOSE(int, pthread_rwlock_trywrlock, pthread_rwlock_t *rwlock)
+INTERPOSE(int, pthread_rwlock_trywrlock, pthread_rwlock_t *lock)
 {
-    struct pthread_rwlock_event ev = {.rwlock = rwlock, .pc = INTERPOSE_PC};
+    struct pthread_rwlock_trywrlock_event ev = {
+        .pc   = INTERPOSE_PC,
+        .lock = lock,
+        .ret  = 0,
+    };
 
     metadata_t md = {0};
     PS_PUBLISH(INTERCEPT_BEFORE, EVENT_RWLOCK_TRYWRLOCK, &ev, &md);
-    ev.ret = REAL(pthread_rwlock_trywrlock, rwlock);
+    ev.ret = REAL(pthread_rwlock_trywrlock, lock);
     PS_PUBLISH(INTERCEPT_AFTER, EVENT_RWLOCK_TRYWRLOCK, &ev, &md);
     return ev.ret;
 }
 
-INTERPOSE(int, pthread_rwlock_unlock, pthread_rwlock_t *rwlock)
+INTERPOSE(int, pthread_rwlock_unlock, pthread_rwlock_t *lock)
 {
-    struct pthread_rwlock_event ev = {.rwlock = rwlock, .pc = INTERPOSE_PC};
+    struct pthread_rwlock_unlock_event ev = {
+        .pc   = INTERPOSE_PC,
+        .lock = lock,
+        .ret  = 0,
+    };
 
     metadata_t md = {0};
     PS_PUBLISH(INTERCEPT_BEFORE, EVENT_RWLOCK_UNLOCK, &ev, &md);
-    ev.ret = REAL(pthread_rwlock_unlock, rwlock);
+    ev.ret = REAL(pthread_rwlock_unlock, lock);
     PS_PUBLISH(INTERCEPT_AFTER, EVENT_RWLOCK_UNLOCK, &ev, &md);
     return ev.ret;
 }
