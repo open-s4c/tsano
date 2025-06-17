@@ -20,19 +20,19 @@ vatomic64_t count;
 
 int x = 0;
 PS_SUBSCRIBE(CAPTURE_EVENT, EVENT_MA_AWRITE, {
-    memaccess_t *ma = EVENT_PAYLOAD(ma);
-    x += ma->argu64;
+    struct ma_awrite_event *ev = EVENT_PAYLOAD(ev);
+    x += ev->val.u64;
 })
 
 void *
 run_time(void *_)
 {
     (void)_;
+    struct ma_awrite_event ev = {0};
     while (!vatomic_read_rlx(&start)) {}
-    memaccess_t ma = {0};
     while (!vatomic_read_rlx(&stop)) {
-        ma.argu64++;
-        PS_PUBLISH(INTERCEPT_EVENT, EVENT_MA_AWRITE, &ma, 0);
+        ev.val.u64++;
+        PS_PUBLISH(INTERCEPT_EVENT, EVENT_MA_AWRITE, &ev, 0);
         vatomic_inc_rlx(&count);
     }
 
@@ -43,10 +43,11 @@ void *
 run_count(void *_)
 {
     (void)_;
+    struct ma_awrite_event ev = {0};
     while (!vatomic_read_rlx(&start)) {}
     for (size_t i = 0; i < 1000000000; i++) {
-        memaccess_t ma = {.argu64 = i};
-        PS_PUBLISH(INTERCEPT_EVENT, EVENT_MA_AWRITE, &ma, 0);
+        ev.val.u64 = i;
+        PS_PUBLISH(INTERCEPT_EVENT, EVENT_MA_AWRITE, &ev, 0);
         vatomic_inc_rlx(&count);
     }
 

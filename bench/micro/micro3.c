@@ -18,17 +18,17 @@ vatomic32_t stop;
 vatomic32_t start;
 vatomic64_t count;
 void intercept(const chain_id chain, const type_id type, void *event,
-             metadata_t *md);
+               metadata_t *md);
 
 void *
 run_time(void *_)
 {
     (void)_;
+    struct ma_awrite_event ev = {0};
     while (!vatomic_read_rlx(&start)) {}
-    memaccess_t ma = {0};
     while (!vatomic_read_rlx(&stop)) {
-        ma.argu64++;
-        intercept(INTERCEPT_EVENT, EVENT_MA_AWRITE, &ma, 0);
+        ev.val.u64++;
+        intercept(INTERCEPT_EVENT, EVENT_MA_AWRITE, &ev, 0);
         vatomic_inc_rlx(&count);
     }
 
@@ -39,10 +39,11 @@ void *
 run_count(void *_)
 {
     (void)_;
+    struct ma_awrite_event ev = {0};
     while (!vatomic_read_rlx(&start)) {}
     for (size_t i = 0; i < 1000000000; i++) {
-        memaccess_t ma = {.argu64 = i};
-        intercept(INTERCEPT_EVENT, EVENT_MA_AWRITE, &ma, 0);
+        ev.val.u64 = i;
+        intercept(INTERCEPT_EVENT, EVENT_MA_AWRITE, &ev, 0);
         vatomic_inc_rlx(&count);
     }
 

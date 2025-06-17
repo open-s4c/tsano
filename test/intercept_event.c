@@ -21,8 +21,8 @@ vatomic64_t count;
 
 bool received = 0;
 PS_SUBSCRIBE(CAPTURE_EVENT, EVENT_MA_AWRITE, {
-    memaccess_t *ma = (memaccess_t *)event;
-    if (ma->argu64 != EXPECTED)
+    struct ma_awrite_event *ev = (struct ma_awrite_event *)event;
+    if (ev->val.u64 != EXPECTED)
         abort();
     received = 1;
 })
@@ -30,9 +30,9 @@ PS_SUBSCRIBE(CAPTURE_EVENT, EVENT_MA_AWRITE, {
 int
 main(void)
 {
-    memaccess_t ma = {.argu64 = EXPECTED};
-    PS_PUBLISH(INTERCEPT_EVENT, EVENT_MA_AWRITE, &ma, 0);
-
+    struct ma_awrite_event ev = {0};
+    ev.val.u64                = EXPECTED;
+    PS_PUBLISH(INTERCEPT_EVENT, EVENT_MA_AWRITE, &ev, 0);
     assert(received);
     return 0;
 }

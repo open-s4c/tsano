@@ -21,21 +21,6 @@
 #define EVENT_MA_CMPXCHG_WEAK 37
 #define EVENT_MA_FENCE        38
 
-typedef struct memaccess {
-    const void *pc;
-    const char *func;
-    uintptr_t addr;
-    size_t size;
-    union {
-        uint8_t argu8;
-        uint16_t argu16;
-        uint32_t argu32;
-        uint64_t argu64;
-        __uint128_t argu128;
-    };
-    bool failed; // optional argument to indicate operation failed
-} memaccess_t;
-
 struct ma_read_event {
     const void *pc;
     const char *func;
