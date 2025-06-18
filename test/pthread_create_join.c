@@ -5,8 +5,10 @@
 #include <assert.h>
 #include <pthread.h>
 
-#include <dice/intercept/pthread.h>
-#include <dice/thread_id.h>
+#include <dice/chains/intercept.h>
+#include <dice/events/pthread.h>
+#include <dice/events/thread.h>
+#include <dice/pubsub.h>
 
 int init_called;
 int fini_called;

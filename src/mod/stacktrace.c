@@ -9,9 +9,11 @@
  ******************************************************************************/
 #include <stdint.h>
 
-#include <dice/intercept/stacktrace.h>
+#include <dice/chains/intercept.h>
+#include <dice/events/stacktrace.h>
 #include <dice/interpose.h>
 #include <dice/module.h>
+#include <dice/pubsub.h>
 
 DICE_MODULE_INIT()
 

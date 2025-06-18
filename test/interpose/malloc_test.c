@@ -7,10 +7,10 @@
 #include <string.h>
 
 #define DICE_TEST_INTERPOSE
-#include <dice/intercept.h>
-#include <dice/intercept/malloc.h>
+#include <dice/chains/intercept.h>
 #include <dice/interpose.h>
 #include <dice/pubsub.h>
+#include <dice/events/malloc.h>
 
 #define ensure(COND)                                                           \
     {                                                                          \
@@ -107,7 +107,7 @@ fake_malloc(size_t size)
     /* check that every argument is as expected */
     ensure(size == E_malloc.size);
     /* return expected value */
-    return E_malloc.ret;
+ return E_malloc.ret;
 }
 void *
 fake_calloc(size_t number, size_t size)
@@ -116,7 +116,7 @@ fake_calloc(size_t number, size_t size)
     ensure(number == E_calloc.number);
     ensure(size == E_calloc.size);
     /* return expected value */
-    return E_calloc.ret;
+ return E_calloc.ret;
 }
 void *
 fake_realloc(void *ptr, size_t size)
@@ -125,7 +125,7 @@ fake_realloc(void *ptr, size_t size)
     ensure(ptr == E_realloc.ptr);
     ensure(size == E_realloc.size);
     /* return expected value */
-    return E_realloc.ret;
+ return E_realloc.ret;
 }
 void
 fake_free(void *ptr)
@@ -142,7 +142,7 @@ fake_posix_memalign(void **ptr, size_t alignment, size_t size)
     ensure(alignment == E_posix_memalign.alignment);
     ensure(size == E_posix_memalign.size);
     /* return expected value */
-    return E_posix_memalign.ret;
+ return E_posix_memalign.ret;
 }
 void *
 fake_aligned_alloc(size_t alignment, size_t size)
@@ -151,7 +151,7 @@ fake_aligned_alloc(size_t alignment, size_t size)
     ensure(alignment == E_aligned_alloc.alignment);
     ensure(size == E_aligned_alloc.size);
     /* return expected value */
-    return E_aligned_alloc.ret;
+ return E_aligned_alloc.ret;
 }
 
 #define ASSERT_FIELD_EQ(E, field)                                              \
@@ -169,7 +169,7 @@ PS_SUBSCRIBE(INTERCEPT_AFTER, EVENT_MALLOC, {
         return PS_CB_STOP;
     struct malloc_event *ev = EVENT_PAYLOAD(ev);
     ASSERT_FIELD_EQ(&E_malloc, size);
-    ASSERT_FIELD_EQ(&E_malloc, ret);
+ ASSERT_FIELD_EQ(&E_malloc, ret);
 })
 PS_SUBSCRIBE(INTERCEPT_BEFORE, EVENT_CALLOC, {
     if (!enabled())
@@ -185,7 +185,7 @@ PS_SUBSCRIBE(INTERCEPT_AFTER, EVENT_CALLOC, {
     struct calloc_event *ev = EVENT_PAYLOAD(ev);
     ASSERT_FIELD_EQ(&E_calloc, number);
     ASSERT_FIELD_EQ(&E_calloc, size);
-    ASSERT_FIELD_EQ(&E_calloc, ret);
+ ASSERT_FIELD_EQ(&E_calloc, ret);
 })
 PS_SUBSCRIBE(INTERCEPT_BEFORE, EVENT_REALLOC, {
     if (!enabled())
@@ -201,7 +201,7 @@ PS_SUBSCRIBE(INTERCEPT_AFTER, EVENT_REALLOC, {
     struct realloc_event *ev = EVENT_PAYLOAD(ev);
     ASSERT_FIELD_EQ(&E_realloc, ptr);
     ASSERT_FIELD_EQ(&E_realloc, size);
-    ASSERT_FIELD_EQ(&E_realloc, ret);
+ ASSERT_FIELD_EQ(&E_realloc, ret);
 })
 PS_SUBSCRIBE(INTERCEPT_BEFORE, EVENT_FREE, {
     if (!enabled())
@@ -232,7 +232,7 @@ PS_SUBSCRIBE(INTERCEPT_AFTER, EVENT_POSIX_MEMALIGN, {
     ASSERT_FIELD_EQ(&E_posix_memalign, ptr);
     ASSERT_FIELD_EQ(&E_posix_memalign, alignment);
     ASSERT_FIELD_EQ(&E_posix_memalign, size);
-    ASSERT_FIELD_EQ(&E_posix_memalign, ret);
+ ASSERT_FIELD_EQ(&E_posix_memalign, ret);
 })
 PS_SUBSCRIBE(INTERCEPT_BEFORE, EVENT_ALIGNED_ALLOC, {
     if (!enabled())
@@ -248,7 +248,7 @@ PS_SUBSCRIBE(INTERCEPT_AFTER, EVENT_ALIGNED_ALLOC, {
     struct aligned_alloc_event *ev = EVENT_PAYLOAD(ev);
     ASSERT_FIELD_EQ(&E_aligned_alloc, alignment);
     ASSERT_FIELD_EQ(&E_aligned_alloc, size);
-    ASSERT_FIELD_EQ(&E_aligned_alloc, ret);
+ ASSERT_FIELD_EQ(&E_aligned_alloc, ret);
 })
 
 
@@ -269,10 +269,10 @@ test_malloc(void)
     event_init(&E_malloc, sizeof(struct malloc_event));
     /* call malloc with arguments */
     enable(fake_malloc);
-    void *ret = //
-        malloc( //
-            E_malloc.size);
-    ensure(ret == E_malloc.ret);
+     void *  ret =                                   //
+                                 malloc(                                    //
+                                     E_malloc.size                                  );
+ ensure(ret == E_malloc.ret);
     disable();
 }
 static void
@@ -282,11 +282,11 @@ test_calloc(void)
     event_init(&E_calloc, sizeof(struct calloc_event));
     /* call calloc with arguments */
     enable(fake_calloc);
-    void *ret =              //
-        calloc(              //
-            E_calloc.number, //
-            E_calloc.size);
-    ensure(ret == E_calloc.ret);
+     void *  ret =                                   //
+                                 calloc(                                    //
+                                     E_calloc.number,                           //
+                                     E_calloc.size                                  );
+ ensure(ret == E_calloc.ret);
     disable();
 }
 static void
@@ -296,11 +296,11 @@ test_realloc(void)
     event_init(&E_realloc, sizeof(struct realloc_event));
     /* call realloc with arguments */
     enable(fake_realloc);
-    void *ret =            //
-        realloc(           //
-            E_realloc.ptr, //
-            E_realloc.size);
-    ensure(ret == E_realloc.ret);
+     void *  ret =                                   //
+                                 realloc(                                    //
+                                     E_realloc.ptr,                           //
+                                     E_realloc.size                                  );
+ ensure(ret == E_realloc.ret);
     disable();
 }
 static void
@@ -310,8 +310,8 @@ test_free(void)
     event_init(&E_free, sizeof(struct free_event));
     /* call free with arguments */
     enable(fake_free);
-    free( //
-        E_free.ptr);
+                                 free(                                    //
+                                     E_free.ptr                                  );
     disable();
 }
 static void
@@ -321,12 +321,12 @@ test_posix_memalign(void)
     event_init(&E_posix_memalign, sizeof(struct posix_memalign_event));
     /* call posix_memalign with arguments */
     enable(fake_posix_memalign);
-    int ret =                           //
-        posix_memalign(                 //
-            E_posix_memalign.ptr,       //
-            E_posix_memalign.alignment, //
-            E_posix_memalign.size);
-    ensure(ret == E_posix_memalign.ret);
+     int  ret =                                   //
+                                 posix_memalign(                                    //
+                                     E_posix_memalign.ptr,                           //
+                                     E_posix_memalign.alignment,                           //
+                                     E_posix_memalign.size                                  );
+ ensure(ret == E_posix_memalign.ret);
     disable();
 }
 static void
@@ -336,11 +336,11 @@ test_aligned_alloc(void)
     event_init(&E_aligned_alloc, sizeof(struct aligned_alloc_event));
     /* call aligned_alloc with arguments */
     enable(fake_aligned_alloc);
-    void *ret =                        //
-        aligned_alloc(                 //
-            E_aligned_alloc.alignment, //
-            E_aligned_alloc.size);
-    ensure(ret == E_aligned_alloc.ret);
+     void *  ret =                                   //
+                                 aligned_alloc(                                    //
+                                     E_aligned_alloc.alignment,                           //
+                                     E_aligned_alloc.size                                  );
+ ensure(ret == E_aligned_alloc.ret);
     disable();
 }
 

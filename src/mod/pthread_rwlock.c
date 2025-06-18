@@ -5,8 +5,10 @@
 #include <assert.h>
 #include <pthread.h>
 
-#include <dice/intercept/pthread.h>
+#include <dice/chains/intercept.h>
+#include <dice/events/pthread.h>
 #include <dice/interpose.h>
+#include <dice/pubsub.h>
 
 INTERPOSE(int, pthread_rwlock_rdlock, pthread_rwlock_t *lock)
 {

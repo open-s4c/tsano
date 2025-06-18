@@ -7,10 +7,10 @@
 #include <string.h>
 
 #define DICE_TEST_INTERPOSE
-#include <dice/intercept.h>
-#include <dice/intercept/pthread.h>
+#include <dice/chains/intercept.h>
 #include <dice/interpose.h>
 #include <dice/pubsub.h>
+#include <dice/events/pthread.h>
 
 #define ensure(COND)                                                           \
     {                                                                          \
@@ -65,7 +65,7 @@ fake_pthread_join(pthread_t thread, void **ptr)
     ensure(thread == E_pthread_join.thread);
     ensure(ptr == E_pthread_join.ptr);
     /* return expected value */
-    return E_pthread_join.ret;
+ return E_pthread_join.ret;
 }
 
 #define ASSERT_FIELD_EQ(E, field)                                              \
@@ -85,7 +85,7 @@ PS_SUBSCRIBE(INTERCEPT_AFTER, EVENT_PTHREAD_JOIN, {
     struct pthread_join_event *ev = EVENT_PAYLOAD(ev);
     ASSERT_FIELD_EQ(&E_pthread_join, thread);
     ASSERT_FIELD_EQ(&E_pthread_join, ptr);
-    ASSERT_FIELD_EQ(&E_pthread_join, ret);
+ ASSERT_FIELD_EQ(&E_pthread_join, ret);
 })
 
 
@@ -106,11 +106,11 @@ test_pthread_join(void)
     event_init(&E_pthread_join, sizeof(struct pthread_join_event));
     /* call pthread_join with arguments */
     enable(fake_pthread_join);
-    int ret =                      //
-        pthread_join(              //
-            E_pthread_join.thread, //
-            E_pthread_join.ptr);
-    ensure(ret == E_pthread_join.ret);
+     int  ret =                                   //
+                                 pthread_join(                                    //
+                                     E_pthread_join.thread,                           //
+                                     E_pthread_join.ptr                                  );
+ ensure(ret == E_pthread_join.ret);
     disable();
 }
 

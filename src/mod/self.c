@@ -25,7 +25,7 @@
     #define DICE_XTOR_PRIO 201
 #endif
 
-#include <dice/intercept.h>
+#include <dice/chains/intercept.h>
 #include <dice/log.h>
 #include <dice/mempool.h>
 #include <dice/module.h>

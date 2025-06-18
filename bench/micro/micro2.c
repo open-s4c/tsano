@@ -7,10 +7,11 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include <dice/intercept.h>
-#include <dice/intercept/memaccess.h>
+#include <dice/chains/intercept.h>
+#include <dice/events/memaccess.h>
 #include <dice/log.h>
 #include <dice/now.h>
+#include <dice/pubsub.h>
 #include <dice/self.h>
 #include <vsync/atomic.h>
 

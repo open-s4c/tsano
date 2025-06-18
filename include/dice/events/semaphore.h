@@ -7,8 +7,6 @@
 
 #include <semaphore.h>
 
-#include <dice/intercept.h>
-
 #define EVENT_SEM_POST      70
 #define EVENT_SEM_WAIT      71
 #define EVENT_SEM_TRYWAIT   72

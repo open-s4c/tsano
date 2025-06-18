@@ -33,10 +33,6 @@ void *self_tls(metadata_t *self, const void *global, size_t size);
     ((__typeof(global_ptr))self_tls((self), (global_ptr),                      \
                                     sizeof(*(global_ptr))))
 
-
-/* Standard capture chains. */
-#define CAPTURE_EVENT  4
-#define CAPTURE_BEFORE 5
-#define CAPTURE_AFTER  6
+#include <dice/chains/capture.h>
 
 #endif /* DICE_SELF_H */

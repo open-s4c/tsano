@@ -45,5 +45,7 @@ foreach(SRC ${SRCS})
   target_link_libraries(${TARGET} PRIVATE pthread)
 endforeach()
 
+add_custom_target(expand-tests)
+
 add_subdirectory(interpose)
 add_subdirectory(tsan)

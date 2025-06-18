@@ -7,8 +7,6 @@
 
 #include <pthread.h>
 
-#include <dice/intercept.h>
-
 #define EVENT_THREAD_CREATE      10
 #define EVENT_THREAD_JOIN        11
 #define EVENT_MUTEX_LOCK         12

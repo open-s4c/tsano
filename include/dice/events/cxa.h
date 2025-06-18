@@ -5,8 +5,6 @@
 #ifndef DICE_CXA_H
 #define DICE_CXA_H
 
-#include <dice/intercept.h>
-
 #define EVENT_CXA_GUARD_ACQUIRE 60
 #define EVENT_CXA_GUARD_RELEASE 61
 #define EVENT_CXA_GUARD_ABORT   62

@@ -4,8 +4,10 @@
  */
 #include <semaphore.h>
 
-#include <dice/intercept/semaphore.h>
+#include <dice/chains/intercept.h>
+#include <dice/events/semaphore.h>
 #include <dice/interpose.h>
+#include <dice/pubsub.h>
 
 INTERPOSE(int, sem_post, sem_t *sem)
 {

@@ -5,11 +5,13 @@
 #include <pthread.h>
 #include <stdlib.h>
 
-#include <dice/intercept/pthread.h>
+#include <dice/chains/intercept.h>
+#include <dice/events/pthread.h>
+#include <dice/events/thread.h>
 #include <dice/interpose.h>
 #include <dice/mempool.h>
 #include <dice/module.h>
-#include <dice/self.h>
+#include <dice/pubsub.h>
 
 typedef struct {
     void *(*run)(void *);

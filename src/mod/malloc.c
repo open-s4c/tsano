@@ -2,8 +2,10 @@
  * Copyright (C) Huawei Technologies Co., Ltd. 2025. All rights reserved.
  * SPDX-License-Identifier: MIT
  */
-#include <dice/intercept/malloc.h>
+#include <dice/chains/intercept.h>
+#include <dice/events/malloc.h>
 #include <dice/interpose.h>
+#include <dice/pubsub.h>
 
 INTERPOSE(void *, malloc, size_t size)
 {

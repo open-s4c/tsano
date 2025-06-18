@@ -149,7 +149,7 @@ int ps_subscribe(chain_id chain, type_id type, ps_cb_f cb);
         /* By default, callbacks return OK to continue chain publishing. */    \
         return PS_CB_OK;                                                       \
     }                                                                          \
-    DICE_HIDE enum ps_cb_err PS_CBNAME(CHAIN, TYPE, DICE_XTOR_PRIO)(         \
+    DICE_HIDE enum ps_cb_err PS_CBNAME(CHAIN, TYPE, DICE_XTOR_PRIO)(           \
         const chain_id chain, const type_id type, void *event, metadata_t *md) \
     {                                                                          \
         return _ps_callback_##CHAIN##_##TYPE(chain, type, event, md);          \
@@ -159,11 +159,27 @@ int ps_subscribe(chain_id chain, type_id type, ps_cb_f cb);
     {                                                                          \
         return _ps_callback_##CHAIN##_##TYPE(chain, type, event, md);          \
     }                                                                          \
-    static void DICE_CTOR _ps_subscribe_##CHAIN##_##TYPE(void)                \
+    static void DICE_CTOR _ps_subscribe_##CHAIN##_##TYPE(void)                 \
     {                                                                          \
         if (ps_subscribe(CHAIN, TYPE,                                          \
                          V_JOIN(V_JOIN(_ps_callback, CHAIN), TYPE)) != 0)      \
             log_fatalf("could not subscribe to %s:%s\n", #CHAIN, #TYPE);       \
     }
+
+/* EVENT_PAYLOAD casts the event argument `event` to type of the given
+ * variable.
+ *
+ * This macro is intended to be used with PS_SUBSCRIBE. The user must
+ * know the type of the argument and then the following pattern can be used:
+ *
+ *     PS_SUBSCRIBE(SOME_HOOK, SOME_EVENT, {
+ *         some_known_type *ev = EVENT_PAYLOAD(ev);
+ *         ...
+ *         })
+ */
+#define EVENT_PAYLOAD(var) (__typeof(var))event
+
+#define INTERPOSE_PC                                                           \
+    (__builtin_extract_return_addr(__builtin_return_address(0)))
 
 #endif /* DICE_PUBSUB_H */

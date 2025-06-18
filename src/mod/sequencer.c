@@ -2,7 +2,7 @@
  * Copyright (C) Huawei Technologies Co., Ltd. 2025. All rights reserved.
  * SPDX-License-Identifier: MIT
  */
-#include <dice/intercept/memaccess.h>
+#include <dice/events/memaccess.h>
 #include <dice/log.h>
 #include <dice/module.h>
 #include <dice/self.h>

@@ -6,7 +6,8 @@
 #include <pthread.h>
 #include <stdio.h>
 
-#include <dice/intercept/memaccess.h>
+#include <dice/chains/intercept.h>
+#include <dice/events/memaccess.h>
 #include <dice/pubsub.h>
 #include <vsync/atomic.h>
 

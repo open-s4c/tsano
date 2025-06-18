@@ -5,8 +5,6 @@
 #ifndef DICE_STACKTRACE_H
 #define DICE_STACKTRACE_H
 
-#include <dice/intercept.h>
-
 #define EVENT_STACKTRACE_ENTER 40
 #define EVENT_STACKTRACE_EXIT  41
 

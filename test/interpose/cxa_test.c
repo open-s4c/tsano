@@ -7,10 +7,10 @@
 #include <string.h>
 
 #define DICE_TEST_INTERPOSE
-#include <dice/intercept.h>
-#include <dice/intercept/cxa.h>
+#include <dice/chains/intercept.h>
 #include <dice/interpose.h>
 #include <dice/pubsub.h>
+#include <dice/events/cxa.h>
 
 #define ensure(COND)                                                           \
     {                                                                          \
@@ -78,7 +78,7 @@ fake___cxa_guard_acquire(void *addr)
     /* check that every argument is as expected */
     ensure(addr == E___cxa_guard_acquire.addr);
     /* return expected value */
-    return E___cxa_guard_acquire.ret;
+ return E___cxa_guard_acquire.ret;
 }
 int
 fake___cxa_guard_release(void *addr)
@@ -86,7 +86,7 @@ fake___cxa_guard_release(void *addr)
     /* check that every argument is as expected */
     ensure(addr == E___cxa_guard_release.addr);
     /* return expected value */
-    return E___cxa_guard_release.ret;
+ return E___cxa_guard_release.ret;
 }
 void
 fake___cxa_guard_abort(void *addr)
@@ -111,7 +111,7 @@ PS_SUBSCRIBE(INTERCEPT_AFTER, EVENT___CXA_GUARD_ACQUIRE, {
         return PS_CB_STOP;
     struct __cxa_guard_acquire_event *ev = EVENT_PAYLOAD(ev);
     ASSERT_FIELD_EQ(&E___cxa_guard_acquire, addr);
-    ASSERT_FIELD_EQ(&E___cxa_guard_acquire, ret);
+ ASSERT_FIELD_EQ(&E___cxa_guard_acquire, ret);
 })
 PS_SUBSCRIBE(INTERCEPT_BEFORE, EVENT___CXA_GUARD_RELEASE, {
     if (!enabled())
@@ -125,7 +125,7 @@ PS_SUBSCRIBE(INTERCEPT_AFTER, EVENT___CXA_GUARD_RELEASE, {
         return PS_CB_STOP;
     struct __cxa_guard_release_event *ev = EVENT_PAYLOAD(ev);
     ASSERT_FIELD_EQ(&E___cxa_guard_release, addr);
-    ASSERT_FIELD_EQ(&E___cxa_guard_release, ret);
+ ASSERT_FIELD_EQ(&E___cxa_guard_release, ret);
 })
 PS_SUBSCRIBE(INTERCEPT_BEFORE, EVENT___CXA_GUARD_ABORT, {
     if (!enabled())
@@ -156,28 +156,26 @@ static void
 test___cxa_guard_acquire(void)
 {
     /* initialize event with random content */
-    event_init(&E___cxa_guard_acquire,
-               sizeof(struct __cxa_guard_acquire_event));
+    event_init(&E___cxa_guard_acquire, sizeof(struct __cxa_guard_acquire_event));
     /* call __cxa_guard_acquire with arguments */
     enable(fake___cxa_guard_acquire);
-    int ret =                //
-        __cxa_guard_acquire( //
-            E___cxa_guard_acquire.addr);
-    ensure(ret == E___cxa_guard_acquire.ret);
+     int  ret =                                   //
+                                 __cxa_guard_acquire(                                    //
+                                     E___cxa_guard_acquire.addr                                  );
+ ensure(ret == E___cxa_guard_acquire.ret);
     disable();
 }
 static void
 test___cxa_guard_release(void)
 {
     /* initialize event with random content */
-    event_init(&E___cxa_guard_release,
-               sizeof(struct __cxa_guard_release_event));
+    event_init(&E___cxa_guard_release, sizeof(struct __cxa_guard_release_event));
     /* call __cxa_guard_release with arguments */
     enable(fake___cxa_guard_release);
-    int ret =                //
-        __cxa_guard_release( //
-            E___cxa_guard_release.addr);
-    ensure(ret == E___cxa_guard_release.ret);
+     int  ret =                                   //
+                                 __cxa_guard_release(                                    //
+                                     E___cxa_guard_release.addr                                  );
+ ensure(ret == E___cxa_guard_release.ret);
     disable();
 }
 static void
@@ -187,8 +185,8 @@ test___cxa_guard_abort(void)
     event_init(&E___cxa_guard_abort, sizeof(struct __cxa_guard_abort_event));
     /* call __cxa_guard_abort with arguments */
     enable(fake___cxa_guard_abort);
-    __cxa_guard_abort( //
-        E___cxa_guard_abort.addr);
+                                 __cxa_guard_abort(                                    //
+                                     E___cxa_guard_abort.addr                                  );
     disable();
 }
 

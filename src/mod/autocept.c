@@ -8,8 +8,9 @@
 
 #include "autocept.h"
 #include "defs.h"
-#include <dice/intercept.h>
+#include <dice/chains/intercept.h>
 #include <dice/module.h>
+#include <dice/pubsub.h>
 
 DICE_MODULE_INIT()
 

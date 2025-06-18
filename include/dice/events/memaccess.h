@@ -5,11 +5,8 @@
 #ifndef DICE_MEMACCESS_H
 #define DICE_MEMACCESS_H
 
-#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-
-#include <dice/intercept.h>
 
 #define EVENT_MA_READ         30
 #define EVENT_MA_WRITE        31

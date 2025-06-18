@@ -38,7 +38,7 @@ $_dl(); // ---------------------------------------------------------------------
 #include <string.h>
 
 #define DICE_TEST_INTERPOSE
-#include <dice/intercept.h>
+#include <dice/chains/intercept.h>
 #include <dice/interpose.h>
 #include <dice/pubsub.h>
 $_begin(INCL = [[stdio.h]]);

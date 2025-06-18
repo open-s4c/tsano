@@ -5,7 +5,7 @@
 #include <pthread.h>
 
 // #define DICE_XTOR_PRIO 300
-#include <dice/intercept.h>
+#include <dice/chains/intercept.h>
 #include <dice/log.h>
 #include <dice/module.h>
 #include <dice/pubsub.h>

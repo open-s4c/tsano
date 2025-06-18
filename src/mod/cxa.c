@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include <dice/intercept/cxa.h>
+#include <dice/chains/intercept.h>
+#include <dice/events/cxa.h>
 #include <dice/interpose.h>
 #include <dice/pubsub.h>
 

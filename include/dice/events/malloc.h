@@ -5,7 +5,7 @@
 #ifndef DICE_MALLOC_H
 #define DICE_MALLOC_H
 
-#include <dice/intercept.h>
+#include <stddef.h>
 
 #define EVENT_MALLOC         50
 #define EVENT_CALLOC         51
