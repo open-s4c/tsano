@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.20)
 project(
   tsano
   LANGUAGES C CXX
-  VERSION 1.0)
+  VERSION 1.1)
 
 # tmplr must be installed to update tsano.c: https://github.com/open-s4c/tmplr
 
