@@ -10,6 +10,7 @@
  * expected compiler builtins and seq_cst barriers.
  ******************************************************************************/
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
 #define _tmpl_mute // ----------- simple empty macros to make clangd happy -----
@@ -122,11 +123,38 @@ __tsan_memcpy(void *dst, const void *src, size_t len)
 {
     return memcpy(dst, src, len);
 }
+void *
+__tsan_memmove(void *dst, const void *src, size_t len)
+{
+    return memmove(dst, src, len);
+}
+/* C++ new and delete */
+void *
+_Znwm(size_t n)
+{
+    return malloc(n);
+}
+void *
+_Znam(size_t n)
+{
+    return malloc(n);
+}
+void
+_ZdlPv(void *ptr)
+{
+    return free(ptr);
+}
+void
+_ZdaPv(void *ptr)
+{
+    return free(ptr);
+}
+
 /* plain reads and writes */
 _tmpl_map(nix, );
 _tmpl_begin(PFX = [[nix; unaligned_]], FUNC = [[read; write]],
             SZ = [[1; 2; 4; 8; 16]]);
-void
+__attribute__((weak)) void
 __tsan_PFXFUNCSZ(void *a)
 {
     (void)a;
