@@ -10,8 +10,8 @@
  * expected compiler builtins and seq_cst barriers.
  ******************************************************************************/
 #include <stdint.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define _tmpl_mute // ----------- simple empty macros to make clangd happy -----
 #define _tmpl_map(...)
@@ -129,16 +129,24 @@ __tsan_memmove(void *dst, const void *src, size_t len)
     return memmove(dst, src, len);
 }
 /* C++ new and delete */
-void *_Znwm(size_t n) {
+void *
+_Znwm(size_t n)
+{
     return malloc(n);
 }
-void *_Znam(size_t n) {
+void *
+_Znam(size_t n)
+{
     return malloc(n);
 }
-void _ZdlPv(void *ptr) {
+void
+_ZdlPv(void *ptr)
+{
     return free(ptr);
 }
-void _ZdaPv(void *ptr) {
+void
+_ZdaPv(void *ptr)
+{
     return free(ptr);
 }
 
