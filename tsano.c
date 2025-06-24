@@ -10,6 +10,7 @@
  * expected compiler builtins and seq_cst barriers.
  ******************************************************************************/
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
 
@@ -113,103 +114,130 @@ __tsan_memcpy(void *dst, const void *src, size_t len)
 {
     return memcpy(dst, src, len);
 }
-/* plain reads and writes */
+void *
+__tsan_memmove(void *dst, const void *src, size_t len)
+{
+    return memmove(dst, src, len);
+}
+/* C++ new and delete */
+void *
+_Znwm(size_t n)
+{
+    return malloc(n);
+}
+void *
+_Znam(size_t n)
+{
+    return malloc(n);
+}
 void
+_ZdlPv(void *ptr)
+{
+    return free(ptr);
+}
+void
+_ZdaPv(void *ptr)
+{
+    return free(ptr);
+}
+
+/* plain reads and writes */
+__attribute__((weak)) void
 __tsan_read1(void *a)
 {
     (void)a;
 }
-void
+__attribute__((weak)) void
 __tsan_read2(void *a)
 {
     (void)a;
 }
-void
+__attribute__((weak)) void
 __tsan_read4(void *a)
 {
     (void)a;
 }
-void
+__attribute__((weak)) void
 __tsan_read8(void *a)
 {
     (void)a;
 }
-void
+__attribute__((weak)) void
 __tsan_read16(void *a)
 {
     (void)a;
 }
-void
+__attribute__((weak)) void
 __tsan_write1(void *a)
 {
     (void)a;
 }
-void
+__attribute__((weak)) void
 __tsan_write2(void *a)
 {
     (void)a;
 }
-void
+__attribute__((weak)) void
 __tsan_write4(void *a)
 {
     (void)a;
 }
-void
+__attribute__((weak)) void
 __tsan_write8(void *a)
 {
     (void)a;
 }
-void
+__attribute__((weak)) void
 __tsan_write16(void *a)
 {
     (void)a;
 }
-void
+__attribute__((weak)) void
 __tsan_unaligned_read1(void *a)
 {
     (void)a;
 }
-void
+__attribute__((weak)) void
 __tsan_unaligned_read2(void *a)
 {
     (void)a;
 }
-void
+__attribute__((weak)) void
 __tsan_unaligned_read4(void *a)
 {
     (void)a;
 }
-void
+__attribute__((weak)) void
 __tsan_unaligned_read8(void *a)
 {
     (void)a;
 }
-void
+__attribute__((weak)) void
 __tsan_unaligned_read16(void *a)
 {
     (void)a;
 }
-void
+__attribute__((weak)) void
 __tsan_unaligned_write1(void *a)
 {
     (void)a;
 }
-void
+__attribute__((weak)) void
 __tsan_unaligned_write2(void *a)
 {
     (void)a;
 }
-void
+__attribute__((weak)) void
 __tsan_unaligned_write4(void *a)
 {
     (void)a;
 }
-void
+__attribute__((weak)) void
 __tsan_unaligned_write8(void *a)
 {
     (void)a;
 }
-void
+__attribute__((weak)) void
 __tsan_unaligned_write16(void *a)
 {
     (void)a;
