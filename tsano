@@ -8,6 +8,8 @@ else
     SO=so
 fi
 
+ARCH=$(uname -p)
+
 # find libtsano
 CURDIR=$(readlink -f $(dirname "$0"))
 LIBDIR=$(readlink -f "$CURDIR/..")/lib
@@ -37,7 +39,7 @@ mkdir -p "$TSANO_DIR"
     ln -sf $LIBTSANO libtsan.$SO.0
     ln -sf $LIBTSANO libtsan.$SO.1
     ln -sf $LIBTSANO libtsan.$SO.2
-    ln -sf $LIBTSANO libclang_rt.tsan-x86_64.$SO
+    ln -sf $LIBTSANO libclang_rt.tsan-$ARCH.$SO
     if [ $SO = "dylib" ]; then
         ln -sf $LIBTSANO libclang_rt.tsan_osx_dynamic.dylib
     fi
