@@ -35,7 +35,9 @@ __tsan_read_range(void *addr, unsigned long size)
     (void)addr;
     (void)size;
 }
-void __tsan_write_range(void *addr, unsigned long size);
+
+void
+__tsan_write_range(void *addr, unsigned long size)
 {
     (void)addr;
     (void)size;
@@ -48,6 +50,7 @@ __tsan_read_range_pc(void *addr, unsigned long size, void *pc)
     (void)size;
     (void)pc;
 }
+
 void
 __tsan_write_range_pc(void *addr, unsigned long size, void *pc)
 {
@@ -191,7 +194,7 @@ __tsan_FUNCSZ_pc(void *a, void *b)
 _tmpl_end();
 
 /* atomic loads */
-_tmpl_begin(BITS = [[8; 16; 32; 64]]);
+_tmpl_begin(BITS = [[8; 16; 32; 64; 128]]);
 uintBITS_t
 __tsan_atomicBITS_load(const volatile uintBITS_t *a, int mo)
 {
@@ -201,7 +204,7 @@ __tsan_atomicBITS_load(const volatile uintBITS_t *a, int mo)
 _tmpl_end();
 
 /* atomic stores */
-_tmpl_begin(BITS = [[8; 16; 32; 64]]);
+_tmpl_begin(BITS = [[8; 16; 32; 64; 128]]);
 void
 __tsan_atomicBITS_store(volatile uintBITS_t *a, uintBITS_t v, int mo)
 {
@@ -212,7 +215,7 @@ _tmpl_end();
 
 
 /* xchg */
-_tmpl_begin(BITS = [[8; 16; 32; 64]]);
+_tmpl_begin(BITS = [[8; 16; 32; 64; 128]]);
 uintBITS_t
 __tsan_atomicBITS_exchange(volatile uintBITS_t *a, uintBITS_t v, int mo)
 {
@@ -222,7 +225,8 @@ __tsan_atomicBITS_exchange(volatile uintBITS_t *a, uintBITS_t v, int mo)
 _tmpl_end();
 
 /* fetch_RMW */
-_tmpl_begin(OP = [[add; sub; and; or ; xor; nand]], BITS = [[8; 16; 32; 64]]);
+_tmpl_begin(OP   = [[add; sub; and; or ; xor; nand]],
+            BITS = [[8; 16; 32; 64; 128]]);
 uintBITS_t
 __tsan_atomicBITS_fetch_OP(volatile uintBITS_t *a, uintBITS_t v, int mo)
 {
@@ -235,7 +239,7 @@ _tmpl_end();
 /* compare_exchange_{strong,weak} */
 _tmpl_map(PARAM_strong, 0);
 _tmpl_map(PARAM_weak, 1);
-_tmpl_begin(SUF = [[strong; weak]], BITS = [[8; 16; 32; 64]]);
+_tmpl_begin(SUF = [[strong; weak]], BITS = [[8; 16; 32; 64; 128]]);
 int
 __tsan_atomicBITS_compare_exchange_SUF(volatile uintBITS_t *a, uintBITS_t *c,
                                        uintBITS_t v, int mo)
@@ -247,7 +251,7 @@ __tsan_atomicBITS_compare_exchange_SUF(volatile uintBITS_t *a, uintBITS_t *c,
 _tmpl_end();
 
 /* compare_exchange_val */
-_tmpl_begin(BITS = [[8; 16; 32; 64]]);
+_tmpl_begin(BITS = [[8; 16; 32; 64; 128]]);
 uintBITS_t
 __tsan_atomicBITS_compare_exchange_val(volatile uintBITS_t *a, uintBITS_t c,
                                        uintBITS_t v, int mo)
@@ -272,355 +276,4 @@ __tsan_atomic_signal_fence(int mo)
 {
     (void)mo;
     __atomic_signal_fence(__ATOMIC_SEQ_CST);
-}
-
-void
-AnnotateHappensBefore(char *f, int l, void *addr)
-{
-    (void)f;
-    (void)l;
-    (void)addr;
-}
-
-void
-AnnotateHappensAfter(char *f, int l, void *addr)
-{
-    (void)f;
-    (void)l;
-    (void)addr;
-}
-
-void
-AnnotateCondVarSignal(char *f, int l, void *cv)
-{
-    (void)f;
-    (void)l;
-    (void)cv;
-}
-
-void
-AnnotateCondVarSignalAll(char *f, int l, void *cv)
-{
-    (void)f;
-    (void)l;
-    (void)cv;
-}
-
-void
-AnnotateMutexIsNotPHB(char *f, int l, void *mu)
-{
-    (void)f;
-    (void)l;
-    (void)mu;
-}
-
-void
-AnnotateCondVarWait(char *f, int l, void *cv, void *lock)
-{
-    (void)f;
-    (void)l;
-    (void)cv;
-    (void)lock;
-}
-
-void
-AnnotateRWLockCreate(char *f, int l, void *m)
-{
-    (void)f;
-    (void)l;
-    (void)m;
-}
-
-void
-AnnotateRWLockCreateStatic(char *f, int l, void *m)
-{
-    (void)f;
-    (void)l;
-    (void)m;
-}
-
-void
-AnnotateRWLockDestroy(char *f, int l, void *m)
-{
-    (void)f;
-    (void)l;
-    (void)m;
-}
-
-void
-AnnotateRWLockAcquired(char *f, int l, void *m, void *is_w)
-{
-    (void)f;
-    (void)l;
-    (void)m;
-    (void)is_w;
-}
-
-void
-AnnotateRWLockReleased(char *f, int l, void *m, void *is_w)
-{
-    (void)f;
-    (void)l;
-    (void)m;
-    (void)is_w;
-}
-
-void
-AnnotateTraceMemory(char *f, int l, void *mem)
-{
-    (void)f;
-    (void)l;
-    (void)mem;
-}
-
-void
-AnnotateFlushState(char *f, int l)
-{
-    (void)f;
-    (void)l;
-}
-
-void
-AnnotateNewMemory(char *f, int l, void *mem, void *size)
-{
-    (void)f;
-    (void)l;
-    (void)mem;
-    (void)size;
-}
-
-void
-AnnotateNoOp(char *f, int l, void *mem)
-{
-    (void)f;
-    (void)l;
-    (void)mem;
-}
-
-void
-AnnotateFlushExpectedRaces(char *f, int l)
-{
-    (void)f;
-    (void)l;
-}
-
-void
-AnnotateEnableRaceDetection(char *f, int l, int enable)
-{
-    (void)f;
-    (void)l;
-    (void)enable;
-}
-
-void
-AnnotateMutexIsUsedAsCondVar(char *f, int l, void *mu)
-{
-    (void)f;
-    (void)l;
-    (void)mu;
-}
-
-void
-AnnotatePCQGet(char *f, int l, void *pcq)
-{
-    (void)f;
-    (void)l;
-    (void)pcq;
-}
-
-void
-AnnotatePCQPut(char *f, int l, void *pcq)
-{
-    (void)f;
-    (void)l;
-    (void)pcq;
-}
-
-void
-AnnotatePCQDestroy(char *f, int l, void *pcq)
-{
-    (void)f;
-    (void)l;
-    (void)pcq;
-}
-
-void
-AnnotatePCQCreate(char *f, int l, void *pcq)
-{
-    (void)f;
-    (void)l;
-    (void)pcq;
-}
-
-void
-AnnotateExpectRace(char *f, int l, void *mem, char *desc)
-{
-    (void)f;
-    (void)l;
-    (void)mem;
-    (void)desc;
-}
-
-void
-AnnotateBenignRaceSized(char *f, int l, void *mem, void *size, char *desc)
-{
-    (void)f;
-    (void)l;
-    (void)mem;
-    (void)size;
-    (void)desc;
-}
-
-void
-AnnotateBenignRace(char *f, int l, void *mem, char *desc)
-{
-    (void)f;
-    (void)l;
-    (void)mem;
-    (void)desc;
-}
-
-void
-AnnotateIgnoreReadsBegin(char *f, int l)
-{
-    (void)f;
-    (void)l;
-}
-
-void
-AnnotateIgnoreReadsEnd(char *f, int l)
-{
-    (void)f;
-    (void)l;
-}
-
-void
-AnnotateIgnoreWritesBegin(char *f, int l)
-{
-    (void)f;
-    (void)l;
-}
-
-void
-AnnotateIgnoreWritesEnd(char *f, int l)
-{
-    (void)f;
-    (void)l;
-}
-
-void
-AnnotateIgnoreSyncBegin(char *f, int l)
-{
-    (void)f;
-    (void)l;
-}
-
-void
-AnnotateIgnoreSyncEnd(char *f, int l)
-{
-    (void)f;
-    (void)l;
-}
-
-void
-AnnotatePublishMemoryRange(char *f, int l, void *addr, void *size)
-{
-    (void)f;
-    (void)l;
-    (void)addr;
-    (void)size;
-}
-
-void
-AnnotateUnpublishMemoryRange(char *f, int l, void *addr, void *size)
-{
-    (void)f;
-    (void)l;
-    (void)addr;
-    (void)size;
-}
-
-void
-AnnotateThreadName(char *f, int l, char *name)
-{
-    (void)f;
-    (void)l;
-    (void)name;
-}
-
-void
-WTFAnnotateHappensBefore(char *f, int l, void *addr)
-{
-    (void)f;
-    (void)l;
-    (void)addr;
-}
-
-void
-WTFAnnotateHappensAfter(char *f, int l, void *addr)
-{
-    (void)f;
-    (void)l;
-    (void)addr;
-}
-
-void
-WTFAnnotateBenignRaceSized(char *f, int l, void *mem, void *sz, char *desc)
-{
-    (void)f;
-    (void)l;
-    (void)mem;
-    (void)sz;
-    (void)desc;
-}
-
-void
-AnnotateMemoryIsInitialized(char *f, int l, void *mem, void *sz)
-{
-    (void)f;
-    (void)l;
-    (void)mem;
-    (void)sz;
-}
-
-void
-AnnotateMemoryIsUninitialized(char *f, int l, void *mem, void *sz)
-{
-    (void)f;
-    (void)l;
-    (void)mem;
-    (void)sz;
-}
-
-void *
-__tsan_get_current_fiber(void)
-{
-    return (void *)0;
-}
-
-void *
-__tsan_create_fiber(unsigned flags)
-{
-    (void)flags;
-    return (void *)0;
-}
-
-void
-__tsan_destroy_fiber(void *fiber)
-{
-    (void)fiber;
-}
-
-void
-__tsan_switch_to_fiber(void *fiber, unsigned flags)
-{
-    (void)fiber;
-    (void)flags;
-}
-
-void
-__tsan_set_fiber_name(void *fiber, const char *name)
-{
-    (void)fiber;
-    (void)name;
 }

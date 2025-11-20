@@ -24,7 +24,7 @@ add_custom_command(
 add_custom_target(tsano.c DEPENDS ${TSANO_C})
 add_custom_target(update-tsano DEPENDS tsano.c)
 
-add_library(tsano SHARED ${TSANO_C} syscall.c)
+add_library(tsano SHARED ${TSANO_C} syscall.c annotate.c fiber.c)
 
 install(TARGETS tsano DESTINATION lib)
 install(
