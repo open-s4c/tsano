@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Huawei Technologies Co., Ltd. 2023-2025. All rights reserved.
+ * Copyright (C) 2023-2025 Huawei Technologies Co., Ltd.
  * SPDX-License-Identifier: 0BSD
  */
 /*******************************************************************************
@@ -28,13 +28,32 @@ void
 __tsan_init()
 {
 }
+
 void
-__tsan_write_range(void)
+__tsan_read_range(void *addr, unsigned long size)
 {
+    (void)addr;
+    (void)size;
+}
+void __tsan_write_range(void *addr, unsigned long size);
+{
+    (void)addr;
+    (void)size;
+}
+
+void
+__tsan_read_range_pc(void *addr, unsigned long size, void *pc)
+{
+    (void)addr;
+    (void)size;
+    (void)pc;
 }
 void
-__tsan_read_range(void)
+__tsan_write_range_pc(void *addr, unsigned long size, void *pc)
 {
+    (void)addr;
+    (void)size;
+    (void)pc;
 }
 
 /* empty vptr impl */
