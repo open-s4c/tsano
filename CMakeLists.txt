@@ -5,26 +5,34 @@ cmake_minimum_required(VERSION 3.20)
 project(
   tsano
   LANGUAGES C CXX
-  VERSION 1.1)
+  VERSION 1.2)
 
-# depends on tmplr: https://github.com/open-s4c/tmplr
-include(tmplr.cmake)
+if(PROJECT_IS_TOP_LEVEL)
+  set(DEV_DEFAULT on)
+else()
+  set(DEV_DEFAULT off)
+endif()
 
-add_compile_options(-Wall -Werror -Wextra)
+option(TSANO_DEV "Enable tsano template expansion" ${DEV_DEFAULT})
+if(${TSANO_DEV})
+  # depends on tmplr: https://github.com/open-s4c/tmplr
+  include(tmplr.cmake)
 
-set(TSANO_C ${CMAKE_CURRENT_BINARY_DIR}/tsano.c)
-set(TSANO_C_IN ${CMAKE_CURRENT_SOURCE_DIR}/tsano.c.in)
+  set(TSANO_C ${CMAKE_CURRENT_BINARY_DIR}/tsano.c)
+  set(TSANO_C_IN ${CMAKE_CURRENT_SOURCE_DIR}/tsano.c.in)
 
-add_custom_command(
-  OUTPUT ${TSANO_C}
-  COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}
-  COMMAND ${TMPLR_PROGRAM} ${TSANO_C_IN} > ${TSANO_C}
-  DEPENDS ${TSANO_C_IN})
+  add_custom_command(
+    OUTPUT ${TSANO_C}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}
+    COMMAND ${TMPLR_PROGRAM} ${TSANO_C_IN} > ${TSANO_C}
+    DEPENDS ${TSANO_C_IN})
 
-add_custom_target(tsano.c DEPENDS ${TSANO_C})
-add_custom_target(update-tsano DEPENDS tsano.c)
+  add_custom_target(tsano.c DEPENDS ${TSANO_C})
+  add_custom_target(update-tsano DEPENDS tsano.c)
+endif()
 
 add_library(tsano SHARED ${TSANO_C} syscall.c annotate.c fiber.c)
+target_compile_options(tsano PRIVATE -Wall -Werror -Wextra)
 
 install(TARGETS tsano DESTINATION lib)
 install(
