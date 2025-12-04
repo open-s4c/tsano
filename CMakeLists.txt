@@ -13,13 +13,13 @@ else()
   set(DEV_DEFAULT off)
 endif()
 
+set(TSANO_C ${CMAKE_CURRENT_SOURCE_DIR}/tsano.c)
+set(TSANO_C_IN ${CMAKE_CURRENT_SOURCE_DIR}/tsano.c.in)
+
 option(TSANO_DEV "Enable tsano template expansion" ${DEV_DEFAULT})
 if(${TSANO_DEV})
   # depends on tmplr: https://github.com/open-s4c/tmplr
-  include(tmplr.cmake)
-
-  set(TSANO_C ${CMAKE_CURRENT_BINARY_DIR}/tsano.c)
-  set(TSANO_C_IN ${CMAKE_CURRENT_SOURCE_DIR}/tsano.c.in)
+  add_subdirectory(deps/tmplr)
 
   add_custom_command(
     OUTPUT ${TSANO_C}
