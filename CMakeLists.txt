@@ -19,16 +19,15 @@ set(TSANO_C_IN ${CMAKE_CURRENT_SOURCE_DIR}/tsano.c.in)
 option(TSANO_DEV "Enable tsano template expansion" ${DEV_DEFAULT})
 if(${TSANO_DEV})
   # depends on tmplr: https://github.com/open-s4c/tmplr
-  add_subdirectory(deps/tmplr)
+  include(cmake/tmplr.cmake)
 
   add_custom_command(
     OUTPUT ${TSANO_C}
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}
-    COMMAND ${TMPLR_PROGRAM} ${TSANO_C_IN} > ${TSANO_C}
+    COMMAND ${TMPLR_PROGRAM} -FBITS="8\;16\;32\;64" ${TSANO_C_IN} > ${TSANO_C}
     DEPENDS ${TSANO_C_IN})
 
-  add_custom_target(tsano.c DEPENDS ${TSANO_C})
-  add_custom_target(update-tsano DEPENDS tsano.c)
+  add_custom_target(update-tsano DEPENDS ${TSANO_C})
 endif()
 
 add_library(tsano SHARED ${TSANO_C} syscall.c annotate.c fiber.c)

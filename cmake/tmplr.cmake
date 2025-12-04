@@ -14,7 +14,7 @@ endif()
 
 execute_process(
   COMMAND
-    "${CMAKE_CURRENT_SOURCE_DIR}/ensure-cmd.sh" -q #
+    "${CMAKE_SOURCE_DIR}/cmake/ensure-cmd.sh" -q #
     --workdir "${CMAKE_BINARY_DIR}" #
     --url "${TMPLR_URL}" #
     --sha256 "${TMPLR_SHA256}" #
